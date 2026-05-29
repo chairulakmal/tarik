@@ -102,6 +102,11 @@ if config.empty?
   }
   write_config(config)
   puts "\n  Saved to .tarik\n"
+
+  if File.exist?('CLAUDE.template.md')
+    FileUtils.cp('CLAUDE.template.md', 'CLAUDE.md')
+    puts "  #{'CLAUDE.md'.ljust(32)}\e[32mgenerated\e[0m"
+  end
 else
   banner 'Configuration'
   summary = config.map { |k, v| "#{k}=#{v}" }.join(', ')
