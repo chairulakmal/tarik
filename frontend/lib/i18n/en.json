@@ -1,5 +1,25 @@
 {
   "common": {
     "appName": "tarik"
+  },
+  "auth": {
+    "signUpTitle": "Create an account",
+    "signInTitle": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "signUpButton": "Create account",
+    "signInButton": "Sign in",
+    "loading": "Please wait…",
+    "alreadyHaveAccount": "Already have an account?",
+    "noAccount": "Don't have an account?",
+    "signInLink": "Sign in",
+    "signUpLink": "Create one",
+    "errorUnknown": "Something went wrong. Please try again."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "signedInAs": "Signed in as",
+    "signOut": "Sign out",
+    "loading": "Loading…"
   }
 }

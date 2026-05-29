@@ -1,8 +1,14 @@
 class ApplicationController < ActionController::API
+  before_action :set_locale_from_user
+
   rescue_from ActiveRecord::RecordNotFound, with: :not_found
   rescue_from ActiveRecord::RecordInvalid, with: :unprocessable_entity
 
   private
+
+  def set_locale_from_user
+    I18n.locale = current_user.locale if current_user
+  end
 
   def render_error(message, code:, status:)
     render json: { error: { message: message, code: code } }, status: status

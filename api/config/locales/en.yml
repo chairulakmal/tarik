@@ -4,3 +4,10 @@ en:
   errors:
     not_found: "Record not found"
     validation_error: "Validation failed"
+  auth:
+    signed_in: "Signed in successfully"
+    signed_out: "Signed out successfully"
+    signed_up: "Account created successfully"
+    invalid_credentials: "Invalid email or password"
+    unauthenticated: "You need to sign in first"
+    invalid_locale: "Locale must be en or ja"

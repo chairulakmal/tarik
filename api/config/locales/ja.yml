@@ -4,3 +4,10 @@ ja:
   errors:
     not_found: "レコードが見つかりません"
     validation_error: "バリデーションエラーが発生しました"
+  auth:
+    signed_in: "ログインしました"
+    signed_out: "ログアウトしました"
+    signed_up: "アカウントを作成しました"
+    invalid_credentials: "メールアドレスまたはパスワードが正しくありません"
+    unauthenticated: "最初にサインインしてください"
+    invalid_locale: "ロケールはenまたはjaである必要があります"

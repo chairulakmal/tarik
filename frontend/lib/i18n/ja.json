@@ -1,5 +1,25 @@
 {
   "common": {
     "appName": "tarik"
+  },
+  "auth": {
+    "signUpTitle": "アカウントを作成",
+    "signInTitle": "ログイン",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "signUpButton": "アカウントを作成",
+    "signInButton": "ログイン",
+    "loading": "しばらくお待ちください…",
+    "alreadyHaveAccount": "すでにアカウントをお持ちですか？",
+    "noAccount": "アカウントをお持ちでないですか？",
+    "signInLink": "ログイン",
+    "signUpLink": "作成する",
+    "errorUnknown": "エラーが発生しました。もう一度お試しください。"
+  },
+  "dashboard": {
+    "title": "ダッシュボード",
+    "signedInAs": "ログイン中：",
+    "signOut": "ログアウト",
+    "loading": "読み込み中…"
   }
 }
