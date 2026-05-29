@@ -14,7 +14,7 @@ Auth, payments, EN/JA i18n, Docker, CI/CD, and Railway deployment — wired toge
 | Frontend | Next.js 16 (App Router) |
 | Database | PostgreSQL 18 |
 | Cache / queues | Redis 8 |
-| Auth | Devise + devise-jwt, httpOnly cookies |
+| Auth | Devise + devise-jwt, Authorization header |
 | Payments | Stripe (direct `stripe` gem) |
 | i18n | next-intl + rails-i18n, EN + JA |
 | Background jobs | Sidekiq (pre-wired, optional) |
@@ -90,7 +90,7 @@ tarik/
 
 ## Auth
 
-Sign-up and sign-in hit the Rails API, which issues a JWT via Devise. The token is stored in an `httpOnly` cookie — never `localStorage`. Every subsequent request sends the cookie automatically; the Rails JWT strategy validates it.
+Sign-up and sign-in hit the Rails API, which issues a JWT via Devise. The token is returned in the `Authorization: Bearer <token>` response header and stored by the client. Every subsequent request attaches it as `Authorization: Bearer <token>`; the Rails JWT strategy validates it.
 
 Protected routes in Next.js are guarded by `proxy.ts` (the Next.js 16 route guard), which redirects unauthenticated users before the page renders.
 
