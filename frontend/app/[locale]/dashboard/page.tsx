@@ -86,9 +86,9 @@ export default function DashboardPage({
 
         {subscription ? (
           <>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span
-                className={`inline-block h-2 w-2 rounded-full ${isActive ? "bg-green-500" : "bg-gray-400"}`}
+                className={`inline-block h-2 w-2 shrink-0 rounded-full ${isActive ? "bg-green-500" : "bg-gray-400"}`}
               />
               <span className="text-sm capitalize">{subscription.status}</span>
               <span className="text-sm text-gray-500">— {subscription.planName}</span>

@@ -7,7 +7,7 @@
 - [x] Phase 3 — i18n wiring: locale files, `Accept-Language` middleware, `next-intl`, `[locale]` routing
 - [x] Phase 4 — Auth: Devise + JWT (Rails), sign in/up/out UI + protected routes (Next.js)
 - [x] Phase 5 — Payments: Stripe service objects + webhook (Rails), payment form + subscription UI (Next.js)
-- [ ] Phase 6 — Fill in EN + JA translations, fix Japanese layout breaks
+- [x] Phase 6 — Fill in EN + JA translations, fix Japanese layout breaks
 - [ ] Phase 7 — README, PAY.JP migration guide, inline comments
 - [ ] Phase 8 — Seed data, demo mode, cold-clone test, GitHub Template config
 

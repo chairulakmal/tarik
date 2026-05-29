@@ -5,6 +5,7 @@ Devise.setup do |config|
   config.case_insensitive_keys = [:email]
   config.strip_whitespace_keys = [:email]
   config.skip_session_storage = [:http_auth]
+  config.navigational_formats = []
   config.stretches = Rails.env.test? ? 1 : 12
   config.password_length = 8..128
   config.email_regexp = /\A[^@\s]+@[^@\s]+\z/

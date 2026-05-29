@@ -11,3 +11,5 @@ ja:
     invalid_credentials: "メールアドレスまたはパスワードが正しくありません"
     unauthenticated: "最初にサインインしてください"
     invalid_locale: "ロケールはenまたはjaである必要があります"
+  payments:
+    no_active_subscription: "有効なサブスクリプションがありません"

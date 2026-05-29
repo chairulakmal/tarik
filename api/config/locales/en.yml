@@ -11,3 +11,5 @@ en:
     invalid_credentials: "Invalid email or password"
     unauthenticated: "You need to sign in first"
     invalid_locale: "Locale must be en or ja"
+  payments:
+    no_active_subscription: "No active subscription"

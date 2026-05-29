@@ -4,6 +4,14 @@ module Api
       class RegistrationsController < Devise::RegistrationsController
         respond_to :json
 
+        # Devise's default create calls sign_up → sign_in, which writes to the
+        # Warden session. Sessions are disabled in API mode, so we skip that.
+        def create
+          build_resource(sign_up_params)
+          resource.save
+          respond_with resource
+        end
+
         private
 
         def respond_with(resource, _opts = {})
