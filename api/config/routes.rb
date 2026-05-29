@@ -11,9 +11,13 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      get  "health",    to: "health#show"
-      get  "users/me",  to: "users#me"
-      patch "users/me", to: "users#update"
+      get    "health",               to: "health#show"
+      get    "users/me",             to: "users#me"
+      patch  "users/me",             to: "users#update"
+      post   "subscriptions",        to: "subscriptions#create"
+      get    "subscriptions/current", to: "subscriptions#current"
+      delete "subscriptions/current", to: "subscriptions#cancel"
+      post   "webhooks/stripe",      to: "webhooks#stripe"
     end
   end
 end
