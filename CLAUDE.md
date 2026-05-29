@@ -1,14 +1,7 @@
 # CLAUDE.md — tarik
 
-> What tarik is, how it's built, and how to help effectively.
-
----
-
-## What is tarik?
-
-**tarik** (طارق) is an open-source, opinionated full-stack SaaS boilerplate targeting developers who want a Rails + Next.js foundation with payments and i18n ready out of the box.
-
-The name comes from Surah At-Tariq (القرآن ٨٦) — the piercing star that guides travellers through darkness. In Indonesian/Malay, *tarik* means "to pull".
+> How tarik is built, and how to help effectively. See README.md for project philosophy
+ and SPEC.md for technical details.
 
 ---
 

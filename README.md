@@ -6,6 +6,24 @@ Auth, payments, EN/JA i18n, Docker, CI/CD, and Railway deployment — wired toge
 
 ---
 
+## What is tarik?
+
+**tarik** (طارق) is an open-source, opinionated SaaS boilerplate for developers 
+who want to skip the setup and start building — Rails 8 API, Next.js 16, auth, 
+payments, and EN/JA i18n, wired together and ready to clone.
+
+The name carries two meanings across two traditions.
+
+In Arabic, *At-Tariq* (الطارق) is the piercing star — the night 
+star that strikes through darkness to guide travellers who have lost their way. 
+An opinionated boilerplate does the same: it cuts through the paralysis of 
+architectural decisions and points you toward a clear path.
+
+In Malay, *tarik* means "to pull" — a gravitational draw toward 
+something. The best tools don't just sit there waiting; they pull you in.
+
+tarik is both: a guiding star, and a stack that pulls you in.
+
 ## Why tarik?
 
 Most Rails boilerplates either bundle a full monolith (views, assets, session cookies) or leave you to wire everything yourself. tarik is neither.

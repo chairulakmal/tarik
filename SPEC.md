@@ -6,7 +6,7 @@
 - [x] Phase 2 — Rails API: `rails new --api`, RSpec, health check, CORS
 - [x] Phase 3 — i18n wiring: locale files, `Accept-Language` middleware, `next-intl`, `[locale]` routing
 - [x] Phase 4 — Auth: Devise + JWT (Rails), sign in/up/out UI + protected routes (Next.js)
-- [ ] Phase 5 — Payments: Stripe service objects + webhook (Rails), payment form + subscription UI (Next.js)
+- [x] Phase 5 — Payments: Stripe service objects + webhook (Rails), payment form + subscription UI (Next.js)
 - [ ] Phase 6 — Fill in EN + JA translations, fix Japanese layout breaks
 - [ ] Phase 7 — README, PAY.JP migration guide, inline comments
 - [ ] Phase 8 — Seed data, demo mode, cold-clone test, GitHub Template config
@@ -143,6 +143,14 @@ Add `.tarik` to `.gitignore` — choices may differ between team members.
 ### Impact on generated files
 
 Choices affect which gems are included in the Gemfile, which locale files are generated, and which env var stubs appear in `.env.example`. Choices do not remove files that already exist — re-running with different options requires manual cleanup or `bin/tarik reconfigure` (Phase 8).
+
+**Locale choices in detail:**
+
+- `en+ja` (default) — no changes; all locale files remain, routing supports both.
+- `en` — `frontend/i18n/routing.ts` is rewritten to `locales: ['en']`; `frontend/lib/i18n/ja.json` and `api/config/locales/ja.yml` are deleted. Components still use `t()` — EN strings are the only values that need to be in `en.json`.
+- `ja` — mirror of the above: EN files removed, routing set to `['ja']`.
+
+The `t()` pattern is kept in all cases. A single-locale project benefits from it: strings stay out of JSX and JA can be added later by restoring `ja.json`, adding `'ja'` to `routing.ts`, and running `bin/setup` again.
 
 ---
 

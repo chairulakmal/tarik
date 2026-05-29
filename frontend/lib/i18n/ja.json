@@ -20,6 +20,30 @@
     "title": "ダッシュボード",
     "signedInAs": "ログイン中：",
     "signOut": "ログアウト",
-    "loading": "読み込み中…"
+    "loading": "読み込み中…",
+    "subscriptionTitle": "サブスクリプション",
+    "noSubscription": "有効なサブスクリプションがありません。",
+    "subscribeNow": "登録する",
+    "renewsOn": "次回更新日：",
+    "cancelSubscription": "サブスクリプションを解約"
+  },
+  "subscribe": {
+    "title": "プランに登録",
+    "description": "Proプランでフル機能をご利用いただけます。",
+    "subscribeButton": "お支払いへ進む",
+    "loading": "リダイレクト中…",
+    "testCardHint": "テストカード：4242 4242 4242 4242",
+    "stripeNotConfigured": "Stripeが設定されていません。",
+    "errorUnknown": "エラーが発生しました。もう一度お試しください。"
+  },
+  "subscribeSuccess": {
+    "title": "登録完了！",
+    "description": "サブスクリプションが有効になりました。ありがとうございます。",
+    "dashboardLink": "ダッシュボードへ"
+  },
+  "subscribeCancel": {
+    "title": "お支払いをキャンセルしました",
+    "description": "請求は発生していません。準備ができたらいつでもお試しください。",
+    "tryAgainLink": "もう一度試す"
   }
 }

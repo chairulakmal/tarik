@@ -78,6 +78,38 @@ def write_config(config)
   File.write(TARIK_FILE, config.map { |k, v| "#{k}=#{v}" }.join("\n") + "\n")
 end
 
+# ── locale setup ──────────────────────────────────────────────────────────────
+
+def configure_locales(locales)
+  return if locales == 'en+ja'
+
+  keep    = locales          # 'en' or 'ja'
+  remove  = locales == 'en' ? 'ja' : 'en'
+
+  routing_path = 'frontend/i18n/routing.ts'
+  if File.exist?(routing_path)
+    File.write(routing_path, <<~TS)
+      import { defineRouting } from 'next-intl/routing';
+
+      export const routing = defineRouting({
+        locales: ['#{keep}'],
+        defaultLocale: '#{keep}',
+      });
+    TS
+    puts "  #{'frontend/i18n/routing.ts'.ljust(32)}\e[32mupdated\e[0m  (#{keep} only)"
+  end
+
+  [
+    "frontend/lib/i18n/#{remove}.json",
+    "api/config/locales/#{remove}.yml",
+  ].each do |path|
+    next unless File.exist?(path)
+
+    FileUtils.rm(path)
+    puts "  #{path.ljust(32)}\e[33mremoved\e[0m   (#{keep} only)"
+  end
+end
+
 # ── main ───────────────────────────────────────────────────────────────────────
 
 puts "\e[1m━━━ tarik setup ━━━\e[0m"
@@ -107,6 +139,8 @@ if config.empty?
     FileUtils.cp('CLAUDE.template.md', 'CLAUDE.md')
     puts "  #{'CLAUDE.md'.ljust(32)}\e[32mgenerated\e[0m"
   end
+
+  configure_locales(config['locales'])
 else
   banner 'Configuration'
   summary = config.map { |k, v| "#{k}=#{v}" }.join(', ')

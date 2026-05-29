@@ -20,6 +20,30 @@
     "title": "Dashboard",
     "signedInAs": "Signed in as",
     "signOut": "Sign out",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "subscriptionTitle": "Subscription",
+    "noSubscription": "You don't have an active subscription.",
+    "subscribeNow": "Subscribe",
+    "renewsOn": "Renews on",
+    "cancelSubscription": "Cancel subscription"
+  },
+  "subscribe": {
+    "title": "Subscribe",
+    "description": "Unlock full access with a Pro subscription.",
+    "subscribeButton": "Continue to checkout",
+    "loading": "Redirecting…",
+    "testCardHint": "Test card: 4242 4242 4242 4242",
+    "stripeNotConfigured": "Stripe is not configured.",
+    "errorUnknown": "Something went wrong. Please try again."
+  },
+  "subscribeSuccess": {
+    "title": "You're subscribed!",
+    "description": "Your subscription is now active. Thank you.",
+    "dashboardLink": "Go to dashboard"
+  },
+  "subscribeCancel": {
+    "title": "Payment cancelled",
+    "description": "No charge was made. You can try again whenever you're ready.",
+    "tryAgainLink": "Try again"
   }
 }

@@ -36,6 +36,17 @@ async function request<T>(
 
 export type User = { id: number; email: string; locale: string };
 
+export type Subscription = {
+  id: number;
+  status: string;
+  planName: string;
+  stripePriceId: string;
+  currentPeriodStart: string | null;
+  currentPeriodEnd: string | null;
+  canceledAt: string | null;
+  trialEndsAt: string | null;
+};
+
 export const auth = {
   signUp: (email: string, password: string) =>
     request<ApiResponse<User>>("/api/v1/auth/sign_up", {
@@ -64,5 +75,25 @@ export const auth = {
     request<ApiResponse<User>>("/api/v1/users/me", {
       method: "PATCH",
       body: JSON.stringify({ user: { locale } }),
+    }),
+};
+
+export const subscriptions = {
+  createCheckout: (priceId: string, successUrl: string, cancelUrl: string) =>
+    request<ApiResponse<{ checkout_url: string }>>("/api/v1/subscriptions", {
+      method: "POST",
+      body: JSON.stringify({
+        price_id:    priceId,
+        success_url: successUrl,
+        cancel_url:  cancelUrl,
+      }),
+    }),
+
+  current: () =>
+    request<ApiResponse<Subscription | null>>("/api/v1/subscriptions/current"),
+
+  cancel: () =>
+    request<ApiResponse<Record<string, never>>>("/api/v1/subscriptions/current", {
+      method: "DELETE",
     }),
 };
