@@ -132,13 +132,15 @@ Both API and frontend support EN and JA from day one.
 
 ---
 
-## Route Guards (Next.js 16)
+## Proxy / Route Protection (Next.js 16)
 
 Next.js 16 renamed `middleware.ts` → `proxy.ts`. Do not create `middleware.ts` — it is ignored.
 
 - Exported function must be named `proxy` (not `middleware`)
 - `config.matcher` array still controls which paths it runs on
 - Runs in Node.js runtime by default (not Edge)
+
+`proxy.ts` handles **locale routing only** — it does not guard auth. The JWT lives in `localStorage`, which the server cannot read, so route protection is client-side: protected pages are client components that check for a token on mount and redirect to `/[locale]/sign-in` if absent. The real boundary is the API returning `401`. See [docs/auth.md](docs/auth.md). Do not add a cookie mirror to make a server-side guard work — that couples the API to the web client.
 
 ---
 
@@ -199,7 +201,7 @@ See SPEC.md → Deployment Architecture. Two Railway services: `tarik-api` (Rail
 
 **Ruby:** RuboCop (`api/.rubocop.yml`). No logic in controllers. Service objects for business logic. No raw SQL unless ActiveRecord can't express it.
 
-**TypeScript/React:** ESLint + Prettier. No `any` types. Server Components by default; `use client` only when necessary. Tailwind CSS.
+**TypeScript/React:** ESLint + Prettier. No `any` types. Server Components by default for public pages; `use client` only when necessary. Authenticated pages are client components by design (JWT lives in `localStorage`) — see [docs/auth.md](docs/auth.md). Tailwind CSS.
 
 ---
 

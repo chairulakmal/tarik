@@ -104,7 +104,19 @@ tarik/
 
 Sign-up and sign-in hit the Rails API, which issues a JWT via Devise. The token is returned in the `Authorization: Bearer <token>` response header and stored by the client. Every subsequent request attaches it as `Authorization: Bearer <token>`; the Rails JWT strategy validates it.
 
-Protected routes in Next.js are guarded by `proxy.ts` (the Next.js 16 route guard), which redirects unauthenticated users before the page renders.
+Route protection in Next.js is client-side: protected pages are client components that check for a token on mount and redirect unauthenticated users to `/sign-in`. `proxy.ts` handles locale routing only. The real security boundary is the API returning `401` — a client guard is just UX. See [`docs/auth.md`](docs/auth.md) for the full rationale (and how to switch to cookie-based SSR if you need it).
+
+---
+
+## Why Next.js?
+
+A fair question given the auth model above: if authenticated pages are client-rendered, why not a plain React SPA?
+
+Because tarik server-renders the part that actually benefits — the **public surface** (landing, pricing, docs). Those are Server Components today, where SEO and fast first paint matter, and that's the half of a SaaS that faces search engines. The app behind the login wall never needed SSR, so rendering it on the client costs nothing real.
+
+Next.js also carries the pieces you'd otherwise assemble by hand: file-based routing and layouts, `next/image` and `next/font`, automatic code-splitting, and the `next-intl` locale routing that powers `/en` and `/ja`.
+
+**What tarik does *not* use Next.js for:** Server Components for authenticated data, Server Actions, or server-side session auth. That's a deliberate trade for a frontend-agnostic API (see [Auth](#auth)). If you later need server-rendered authenticated pages, [`docs/auth.md`](docs/auth.md) documents the switch to `HttpOnly`-cookie auth — a frontend-only change; the Rails API stays the same.
 
 ---
 

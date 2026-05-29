@@ -46,7 +46,7 @@ The goal is a clean starting point that a small team or solo developer can fork,
 `config.api_only = true`. No asset pipeline, no sessions, no view layer. Keeps the backend focused and the container image small.
 
 ### Next.js App Router
-Next.js 16 with the App Router. Server Components by default — client components only when interactivity requires it. This gives good performance defaults without manual optimisation.
+Next.js 16 with the App Router. Server Components by default **for public pages** — client components only when interactivity requires it. Authenticated pages are an explicit exception: because the JWT lives in `localStorage` (client-only) and the API holds no server session, protected pages are client components that fetch via the Bearer header after mount. See [docs/auth.md](docs/auth.md).
 
 ### Direct Stripe integration
 The `stripe` gem (112M+ downloads) instead of the `pay` abstraction (1.6M). Reasons:
@@ -265,14 +265,15 @@ Each phase is self-contained and leaves the codebase in a working state. Phases 
 - Sign up page (`/[locale]/sign-up`)
 - Sign in page (`/[locale]/sign-in`)
 - Sign out action
-- JWT stored in `localStorage` — retrieved from `Authorization` response header on sign-in, attached as `Authorization: Bearer <token>` on every subsequent request
-- `proxy.ts` (Next.js 16 route guard) — redirects unauthenticated users away from protected paths
+- JWT stored in `localStorage` only — retrieved from the `Authorization` response header on sign-in, attached as `Authorization: Bearer <token>` on every subsequent request. No cookie mirror (keeps the API frontend-agnostic; see [docs/auth.md](docs/auth.md))
+- `proxy.ts` handles locale routing only — it does not guard auth (the server cannot read `localStorage`)
+- Route protection is client-side: protected pages are client components that check for a token on mount and redirect to `/[locale]/sign-in` if absent
 - Dashboard shell (`/[locale]/dashboard`) — protected, renders authenticated user's email
 - All strings use `t()` keys
 
 **Acceptance criteria:**
 - Full sign-up → sign-in → dashboard → sign-out flow works end to end
-- Unauthenticated request to `/dashboard` redirects to `/sign-in`
+- Visiting `/dashboard` without a token redirects to `/sign-in` (client-side)
 - JWT is present in `Authorization` response header on sign-in
 - All auth endpoints have passing request specs
 

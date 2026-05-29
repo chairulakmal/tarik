@@ -63,13 +63,15 @@ PAY.JP migration guide: [docs/payjp-migration.md](docs/payjp-migration.md)
 
 ---
 
-## Route guards (Next.js 16)
+## Proxy / route protection (Next.js 16)
 
 Next.js 16 renamed `middleware.ts` → `proxy.ts`:
 
 - File: `frontend/proxy.ts`
 - Exported function must be named `proxy` (not `middleware`)
 - `config.matcher` still controls which paths it runs on
+
+`proxy.ts` handles **locale routing only** — auth is not guarded server-side. The JWT lives in `localStorage`, so protected pages are client components that redirect on a missing token; the API's `401` is the real boundary. See [docs/auth.md](docs/auth.md).
 
 ---
 
@@ -99,4 +101,4 @@ To add browser (E2E) tests: [docs/playwright.md](docs/playwright.md)
 ## Code style
 
 - **Ruby:** RuboCop (`api/.rubocop.yml`). Service objects for business logic. No raw SQL unless ActiveRecord can't express it.
-- **TypeScript/React:** ESLint + Prettier. No `any` types. Server Components by default; `use client` only when necessary. Tailwind CSS.
+- **TypeScript/React:** ESLint + Prettier. No `any` types. Server Components by default for public pages; `use client` only when necessary. Authenticated pages are client components by design (JWT lives in `localStorage`) — see [docs/auth.md](docs/auth.md). Tailwind CSS.
