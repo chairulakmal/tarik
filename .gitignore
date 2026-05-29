@@ -1,0 +1,36 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# tarik configuration
+.tarik
+
+# ── Ruby / Rails ───────────────────────────────────────────────────────────────
+api/log/
+api/tmp/
+api/.bundle/
+api/vendor/bundle/
+api/public/system/
+api/public/uploads/
+api/.byebug_history
+api/coverage/
+*.log
+
+# ── Next.js ────────────────────────────────────────────────────────────────────
+frontend/.next/
+frontend/out/
+frontend/coverage/
+
+# ── Node ───────────────────────────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+
+# ── OS ─────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Editor ─────────────────────────────────────────────────────────────────────
+.idea/
+*.swp
+*.swo

@@ -1,0 +1,140 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'fileutils'
+
+TARIK_FILE  = '.tarik'
+ENV_EXAMPLE = '.env.example'
+ENV_FILE    = '.env'
+
+# ── output helpers ─────────────────────────────────────────────────────────────
+
+def banner(text)
+  puts "\n\e[1m#{text}\e[0m"
+end
+
+def step(label)
+  print "  #{label.ljust(32)}"
+  $stdout.flush
+  yield
+  puts "\e[32mdone\e[0m"
+rescue => e
+  puts "\e[31mfailed\e[0m"
+  puts "  \e[31m→ #{e.message}\e[0m"
+  exit 1
+end
+
+def skip(label, reason)
+  puts "  #{label.ljust(32)}\e[33mskipped\e[0m  (#{reason})"
+end
+
+# ── prompt helpers ─────────────────────────────────────────────────────────────
+
+def prompt(question, options, default)
+  puts "\n  #{question}"
+  options.each_with_index do |opt, i|
+    marker = opt == default ? '▶' : ' '
+    puts "    #{marker} #{i + 1}) #{opt}"
+  end
+  print "  Choice [#{default}]: "
+  $stdout.flush
+  input = $stdin.gets&.chomp || ''
+  return default if input.empty?
+
+  options.find { |o| o == input } || options[input.to_i - 1] || default
+end
+
+def ask_yes_no(question, default)
+  label = default ? 'Y/n' : 'y/N'
+  print "  #{question} [#{label}]: "
+  $stdout.flush
+  input = $stdin.gets&.chomp&.downcase || ''
+  input.empty? ? default : input.start_with?('y')
+end
+
+# ── shell helper ───────────────────────────────────────────────────────────────
+
+def run(cmd, chdir: nil)
+  opts = { out: File::NULL, err: File::NULL }
+  opts[:chdir] = chdir if chdir
+  system(cmd, **opts) or raise "`#{cmd}` exited with an error"
+end
+
+# ── config ─────────────────────────────────────────────────────────────────────
+
+def read_config
+  return {} unless File.exist?(TARIK_FILE)
+
+  File.readlines(TARIK_FILE).each_with_object({}) do |line, h|
+    line.strip!
+    next if line.empty? || line.start_with?('#')
+
+    k, v = line.split('=', 2)
+    h[k] = v if k && v
+  end
+end
+
+def write_config(config)
+  File.write(TARIK_FILE, config.map { |k, v| "#{k}=#{v}" }.join("\n") + "\n")
+end
+
+# ── main ───────────────────────────────────────────────────────────────────────
+
+puts "\e[1m━━━ tarik setup ━━━\e[0m"
+
+config = read_config
+
+if config.empty?
+  banner 'Configuration (first run)'
+
+  payment = prompt('Payment processor?',  %w[stripe payjp],   'stripe')
+  locales = prompt('Supported locales?',  %w[en ja en+ja],    'en+ja')
+  sidekiq = ask_yes_no('Include Sidekiq?',                    true)
+  email   = ask_yes_no('Include transactional email?',        false)
+  storage = ask_yes_no('Include file storage (S3)?',          false)
+
+  config = {
+    'payment' => payment,
+    'locales' => locales,
+    'sidekiq' => sidekiq.to_s,
+    'email'   => email.to_s,
+    'storage' => storage.to_s
+  }
+  write_config(config)
+  puts "\n  Saved to .tarik\n"
+else
+  banner 'Configuration'
+  summary = config.map { |k, v| "#{k}=#{v}" }.join(', ')
+  puts "  Found .tarik — skipping prompts"
+  puts "  #{summary}"
+end
+
+banner 'Setup'
+
+# .env
+if File.exist?(ENV_FILE)
+  skip('.env', 'already exists')
+else
+  step('.env') { FileUtils.cp(ENV_EXAMPLE, ENV_FILE) }
+end
+
+# Docker
+step('Docker (db + redis)') { run('docker compose up -d') }
+
+# Rails (Phase 2+)
+if Dir.exist?('api')
+  step('Ruby gems')  { run('bundle install', chdir: 'api') }
+  step('Database')   { run('bin/rails db:create db:migrate', chdir: 'api') }
+else
+  skip('Ruby gems', 'api/ not yet created')
+  skip('Database',  'api/ not yet created')
+end
+
+# Next.js (Phase 3+)
+if Dir.exist?('frontend')
+  step('Node modules') { run('npm install', chdir: 'frontend') }
+else
+  skip('Node modules', 'frontend/ not yet created')
+end
+
+puts "\n\e[1m━━━ Done. Run: bin/dev ━━━\e[0m\n"

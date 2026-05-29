@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -e
+
+if ! command -v foreman &>/dev/null; then
+  echo "foreman not found. Run: gem install foreman"
+  exit 1
+fi
+
+exec foreman start -f Procfile.dev

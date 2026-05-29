@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  rails:
+    name: Rails tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: tarik_test
+          POSTGRES_USER: tarik
+          POSTGRES_PASSWORD: tarik
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:8-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgres://tarik:tarik@localhost:5432/tarik_test
+      REDIS_URL: redis://localhost:6379/0
+      RAILS_ENV: test
+      JWT_SECRET: test-secret-not-used-in-production
+      JWT_EXPIRY: 86400
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          working-directory: api
+          bundler-cache: true
+
+      - name: Set up database
+        working-directory: api
+        run: bin/rails db:create db:schema:load
+
+      - name: RSpec
+        working-directory: api
+        run: bundle exec rspec
+
+  next:
+    name: Next.js tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.node-version
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Type check
+        working-directory: frontend
+        run: npm run type-check
+
+      - name: Vitest
+        working-directory: frontend
+        run: npm test
