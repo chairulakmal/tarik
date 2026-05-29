@@ -2,9 +2,9 @@ require_relative "boot"
 
 require "rails/all"
 
-# Require the gems listed in Gemfile, including any gems
-# you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
+
+require_relative "../app/middleware/accept_language"
 
 module Api
   class Application < Rails::Application
@@ -28,5 +28,10 @@ module Api
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    config.i18n.available_locales = %i[en ja]
+    config.i18n.default_locale = :en
+
+    config.middleware.use AcceptLanguage
   end
 end

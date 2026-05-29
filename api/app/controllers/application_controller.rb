@@ -8,8 +8,8 @@ class ApplicationController < ActionController::API
     render json: { error: { message: message, code: code } }, status: status
   end
 
-  def not_found(exception)
-    render_error exception.message, code: "not_found", status: :not_found
+  def not_found(_exception)
+    render_error t("errors.not_found"), code: "not_found", status: :not_found
   end
 
   def unprocessable_entity(exception)

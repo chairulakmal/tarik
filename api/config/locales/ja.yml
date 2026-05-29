@@ -1,0 +1,6 @@
+ja:
+  common:
+    app_name: "tarik"
+  errors:
+    not_found: "レコードが見つかりません"
+    validation_error: "バリデーションエラーが発生しました"
