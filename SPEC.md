@@ -1,5 +1,18 @@
 # Technical Specification — tarik
 
+## Progress
+
+- [x] Phase 1 — Docker, CI skeleton, Railway setup, `.env.example`, `bin/setup`, `bin/dev`
+- [x] Phase 2 — Rails API: `rails new --api`, RSpec, health check, CORS
+- [ ] Phase 3 — i18n wiring: locale files, `Accept-Language` middleware, `next-intl`, `[locale]` routing
+- [ ] Phase 4 — Auth: Devise + JWT (Rails), sign in/up/out UI + protected routes (Next.js)
+- [ ] Phase 5 — Payments: Stripe service objects + webhook (Rails), payment form + subscription UI (Next.js)
+- [ ] Phase 6 — Fill in EN + JA translations, fix Japanese layout breaks
+- [ ] Phase 7 — README, PAY.JP migration guide, inline comments
+- [ ] Phase 8 — Seed data, demo mode, cold-clone test, GitHub Template config
+
+---
+
 ## Overview
 
 `tarik` is an open-source, opinionated full-stack SaaS boilerplate built on Rails 8 and Next.js 16. It ships production-grade infrastructure — auth, payments, i18n, CI/CD, containerisation, deployment — wired together and ready to extend.
@@ -12,6 +25,7 @@ The goal is a clean starting point that a small team or solo developer can fork,
 
 - **Zero setup friction.** `bin/setup` on a clean machine should reach a running app in under five minutes.
 - **Production parity from day one.** Local development uses the same Postgres and Redis versions as production. No SQLite in development, no surprises on deploy.
+- **API-first, multi-consumer by design.** The Rails backend is not coupled to the included Next.js frontend. The same API should be consumable by a mobile app, a third-party integration, or a CLI without any structural changes. Every API boundary decision — Bearer tokens over cookies, JSON-only responses, versioned routes — follows from this.
 - **i18n as infrastructure, not an afterthought.** EN and JA support is wired before any feature is built. Retrofitting is expensive; building on top of it is free.
 - **Payments that can migrate.** Direct Stripe integration (no `pay` abstraction) keeps the path to PAY.JP open — useful for any product that may need to switch processors later.
 - **Readable over clever.** A developer unfamiliar with this codebase should be able to understand any file without project-specific context. No meta-programming without a strong reason.

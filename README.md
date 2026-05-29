@@ -6,6 +6,18 @@ Auth, payments, EN/JA i18n, Docker, CI/CD, and Railway deployment — wired toge
 
 ---
 
+## Why tarik?
+
+Most Rails boilerplates either bundle a full monolith (views, assets, session cookies) or leave you to wire everything yourself. tarik is neither.
+
+The backend is a pure Rails API. The included Next.js frontend is the reference consumer — but the API is designed from the start to serve whatever comes next: a React Native app, a third-party integration, a CLI tool. Authorization via `Bearer` token (not cookies) means any HTTP client can authenticate without special configuration. Every decision at the API boundary was made with multiple consumers in mind.
+
+The other thing tarik solves is the repetition. Every Rails SaaS project starts by wiring the same things: Devise, JWTs, Stripe service objects, i18n locale routing, Docker, CI, deployment config. That's usually two or three days of setup that produces no product value. tarik makes those decisions once, documents them, and gets out of the way.
+
+The JA (Japanese) support is deliberate, not decorative. Ruby remains a popular backend language in Japan's tech industry, and PAY.JP is the dominant payment processor there. A boilerplate without either is not useful for that market. tarik ships both, including a migration guide for moving from Stripe to PAY.JP.
+
+---
+
 ## What's included
 
 | Layer | Technology |
