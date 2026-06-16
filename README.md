@@ -4,6 +4,13 @@
 
 Auth, payments, EN/JA i18n, Docker, CI/CD, and Railway deployment — wired together and ready to extend.
 
+[![CI](https://github.com/chairulakmal/tarik/actions/workflows/ci.yml/badge.svg)](https://github.com/chairulakmal/tarik/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Ruby](https://img.shields.io/badge/Ruby-3.4.9-CC342D?logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
+[![Rails](https://img.shields.io/badge/Rails-8-CC0000?logo=rubyonrails&logoColor=white)](https://rubyonrails.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![Node](https://img.shields.io/badge/Node-24-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+
 ---
 
 ## What is tarik?

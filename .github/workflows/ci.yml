@@ -64,7 +64,6 @@ jobs:
   next:
     name: Next.js tests
     runs-on: ubuntu-latest
-    if: hashFiles('frontend/package.json') != ''
 
     steps:
       - uses: actions/checkout@v4
