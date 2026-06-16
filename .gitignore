@@ -42,6 +42,4 @@ Thumbs.db
 #   CLAUDE.md          — Claude Code-specific workflow overrides for tarik's own dev
 #   CLAUDE.template.md — superseded by AGENTS.md; no longer distributed
 CLAUDE.md
-
-CLAUDE.template.md
 .claude/
