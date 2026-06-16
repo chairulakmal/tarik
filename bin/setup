@@ -135,10 +135,8 @@ if config.empty?
   write_config(config)
   puts "\n  Saved to .tarik\n"
 
-  if File.exist?('CLAUDE.template.md')
-    FileUtils.cp('CLAUDE.template.md', 'CLAUDE.md')
-    puts "  #{'CLAUDE.md'.ljust(32)}\e[32mgenerated\e[0m"
-  end
+  puts "  #{'AGENTS.md'.ljust(32)}\e[33minitialized from AGENTS.template.md on first git push\e[0m"
+  puts "  After that, edit AGENTS.md to describe your project's own conventions."
 
   configure_locales(config['locales'])
 else

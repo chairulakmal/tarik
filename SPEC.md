@@ -108,7 +108,7 @@ tarik/
 
 ## Interactive Setup and `.tarik` Config
 
-`bin/setup` prompts the user for a small set of choices on first run. Answers are written to a `.tarik` file at the project root so subsequent runs (or a future `bin/tarik reconfigure`) skip the interactive prompts.
+`bin/setup` prompts the user for a small set of choices on first run. Answers are written to a `.tarik` file at the project root so subsequent runs skip the interactive prompts.
 
 ### Prompts
 
@@ -142,7 +142,7 @@ Add `.tarik` to `.gitignore` — choices may differ between team members.
 
 ### Impact on generated files
 
-Choices affect which gems are included in the Gemfile, which locale files are generated, and which env var stubs appear in `.env.example`. Choices do not remove files that already exist — re-running with different options requires manual cleanup or `bin/tarik reconfigure` (Phase 8).
+Choices affect which gems are included in the Gemfile, which locale files are generated, and which env var stubs appear in `.env.example`. Choices do not remove files that already exist — re-running with different options requires manually cleaning up the relevant files and re-running `bin/setup`.
 
 **Locale choices in detail:**
 

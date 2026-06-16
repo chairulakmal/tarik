@@ -1,7 +1,8 @@
 # AGENTS.md
 
 > This project was generated from [tarik](https://github.com/your-org/tarik) — a Rails + Next.js SaaS boilerplate with payments and i18n.
-> Update this file to reflect your own project's conventions as you build.
+>
+> **This file is your starting point — update it as you build.** Add your product name, strip out sections that don't apply, and document any conventions that diverge from the tarik defaults. The better this file reflects your project, the more useful any AI agent will be.
 
 ---
 

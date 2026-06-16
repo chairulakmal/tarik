@@ -56,9 +56,21 @@ The JA (Japanese) support is deliberate, not decorative. Ruby remains a popular 
 
 ---
 
+## Prerequisites
+
+| Tool | Version | Notes |
+|---|---|---|
+| Ruby | 3.4.9 | manage with [rbenv](https://github.com/rbenv/rbenv) or [mise](https://mise.jdx.dev) |
+| Node.js | 22+ | manage with [nvm](https://github.com/nvm-sh/nvm) or [mise](https://mise.jdx.dev) |
+| Docker | any recent | Postgres and Redis run in Docker |
+| Bundler | latest | `gem install bundler` |
+| foreman | latest | `gem install foreman` — required by `bin/dev` |
+
+---
+
 ## Quick start
 
-tarik is a [GitHub Template](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template). Click **Use this template** to create your own repository, then:
+tarik is a [GitHub Template](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template). Click **Use this template** to create your own repository (GitHub fills in the URL for you), then:
 
 ```bash
 git clone https://github.com/your-username/your-app
@@ -83,7 +95,12 @@ Edit `.env` with your API keys and JWT secret before signing up.
 
 ### Try it without API keys (demo mode)
 
-Set `DEMO_MODE=true` and `NEXT_PUBLIC_DEMO_MODE=true` in `.env`, then run `bin/setup`. Seeds create a demo user automatically — sign in with **demo@tarik.dev / tarik_demo_password** to explore the subscription flow without touching Stripe.
+1. Run `bin/setup` — this creates `.env` from `.env.example`.
+2. Edit the generated `.env`: set `DEMO_MODE=true` and `NEXT_PUBLIC_DEMO_MODE=true`.
+3. Seed the demo account: `cd api && bin/rails db:seed`
+4. Start: `bin/dev`
+
+Sign in with **demo@tarik.dev / tarik_demo_password** to explore the subscription flow without touching Stripe.
 
 ---
 
@@ -129,6 +146,10 @@ tarik/
 Sign-up and sign-in hit the Rails API, which issues a JWT via Devise. The token is returned in the `Authorization: Bearer <token>` response header and stored by the client. Every subsequent request attaches it as `Authorization: Bearer <token>`; the Rails JWT strategy validates it.
 
 Route protection in Next.js is client-side: protected pages are client components that check for a token on mount and redirect unauthenticated users to `/sign-in`. `proxy.ts` handles locale routing only. The real security boundary is the API returning `401` — a client guard is just UX. See [`docs/auth.md`](docs/auth.md) for the full rationale (and how to switch to cookie-based SSR if you need it).
+
+Passwords must be **15 characters minimum** with no complexity rules — per [NIST SP800-63B](https://pages.nist.gov/800-63-4/sp800-63b.html#passwordver). See [`docs/auth.md`](docs/auth.md) for the rationale behind this policy.
+
+Auth endpoints are rate-limited: 5 sign-in attempts per 20 seconds per IP (and per email address), 10 sign-ups per hour per IP. Limits are enforced by `rack-attack` backed by the shared Redis instance.
 
 ---
 
@@ -203,18 +224,29 @@ All environment differences are handled via environment variables.
 
 ## Environment variables
 
-See `.env.example` for the full list with comments. Required variables:
+[`.env.example`](.env.example) is the canonical reference — every variable is listed there with a comment. `bin/setup` copies it to `.env` on first run.
 
+**Required to boot:**
 ```bash
 DATABASE_URL
+REDIS_URL
 RAILS_MASTER_KEY
 SECRET_KEY_BASE
 JWT_SECRET
+```
+
+**Required for payments (Stripe):**
+```bash
 STRIPE_SECRET_KEY
 STRIPE_PUBLISHABLE_KEY
 STRIPE_WEBHOOK_SECRET
-NEXT_PUBLIC_API_URL
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+NEXT_PUBLIC_STRIPE_PRICE_ID        # Price ID of the plan shown on the subscribe page
+```
+
+**Required for the frontend:**
+```bash
+NEXT_PUBLIC_API_URL
 ```
 
 Never commit `.env`.
