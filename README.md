@@ -70,11 +70,11 @@ The JA (Japanese) support is deliberate, not decorative. Ruby remains a popular 
 
 ## Quick start
 
-tarik is a [GitHub Template](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template). Click **Use this template** to create your own repository (GitHub fills in the URL for you), then:
+tarik is a [GitHub Template](https://github.com/chairulakmal/tarik). Click **Use this template** on the [tarik repository](https://github.com/chairulakmal/tarik) to create your own repository, then:
 
 ```bash
-git clone https://github.com/your-username/your-app
-cd your-app
+git clone https://github.com/your-username/tarik   # GitHub fills this in for you
+cd tarik
 bin/setup
 ```
 
