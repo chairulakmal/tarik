@@ -31,5 +31,5 @@ end
 # Return JSON consistent with the API's error envelope.
 Rack::Attack.throttled_responder = lambda do |_req|
   body = { error: { message: "Too many requests. Please try again later.", code: "rate_limit_exceeded" } }.to_json
-  [429, { "Content-Type" => "application/json" }, [body]]
+  [ 429, { "Content-Type" => "application/json" }, [ body ] ]
 end

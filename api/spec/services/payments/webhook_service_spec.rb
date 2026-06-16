@@ -22,7 +22,7 @@ RSpec.describe Payments::WebhookService do
     double("Stripe::Subscription", {
       id:          "sub_123",
       status:      "active",
-      items:       double(data: [item]),
+      items:       double(data: [ item ]),
       trial_end:   nil,
       canceled_at: nil
     }.merge(overrides))

@@ -10,7 +10,7 @@ module Api
         # NOTE: revisit on Devise upgrade — if the hook is renamed or removed,
         # this skip becomes a silent no-op and the old behavior returns.
         skip_before_action :verify_signed_out_user
-        before_action :require_authorization_header, only: [:destroy]
+        before_action :require_authorization_header, only: [ :destroy ]
 
         private
 

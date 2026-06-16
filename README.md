@@ -5,6 +5,7 @@
 Auth, payments, EN/JA i18n, Docker, CI/CD, and Railway deployment — wired together and ready to extend.
 
 [![CI](https://github.com/chairulakmal/tarik/actions/workflows/ci.yml/badge.svg)](https://github.com/chairulakmal/tarik/actions/workflows/ci.yml)
+[![Deploy](https://github.com/chairulakmal/tarik/actions/workflows/deploy.yml/badge.svg)](https://github.com/chairulakmal/tarik/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Ruby](https://img.shields.io/badge/Ruby-3.4.9-CC342D?logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
 [![Rails](https://img.shields.io/badge/Rails-8-CC0000?logo=rubyonrails&logoColor=white)](https://rubyonrails.org/)
@@ -68,7 +69,7 @@ The JA (Japanese) support is deliberate, not decorative. Ruby remains a popular 
 | Tool | Version | Notes |
 |---|---|---|
 | Ruby | 3.4.9 | manage with [rbenv](https://github.com/rbenv/rbenv) or [mise](https://mise.jdx.dev) |
-| Node.js | 22+ | manage with [nvm](https://github.com/nvm-sh/nvm) or [mise](https://mise.jdx.dev) |
+| Node.js | 24 | manage with [nvm](https://github.com/nvm-sh/nvm) or [mise](https://mise.jdx.dev) |
 | Docker | any recent | Postgres and Redis run in Docker |
 | Bundler | latest | `gem install bundler` |
 | foreman | latest | `gem install foreman` — required by `bin/dev` |

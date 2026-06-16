@@ -14,8 +14,8 @@ module Payments
 
       Stripe::Checkout::Session.create(
         customer: customer.id,
-        payment_method_types: ["card"],
-        line_items: [{ price: price_id, quantity: 1 }],
+        payment_method_types: [ "card" ],
+        line_items: [ { price: price_id, quantity: 1 } ],
         mode: "subscription",
         success_url: success_url,
         cancel_url: cancel_url
