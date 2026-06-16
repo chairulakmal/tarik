@@ -1,6 +1,13 @@
 # Disabled in test so request specs aren't throttled.
 return if Rails.env.test?
 
+# Use Redis so throttle counters are shared across replicas.
+# Falls back to the default Rails.cache if REDIS_URL is absent (e.g. local dev
+# without the REDIS_URL env var set), which is acceptable for single-instance use.
+Rack::Attack.cache.store = ActiveSupport::Cache::RedisCacheStore.new(
+  url: ENV.fetch("REDIS_URL", "redis://localhost:6379/1")
+)
+
 # Sign-in: 5 attempts per 20 seconds per IP address.
 Rack::Attack.throttle("sign_in/ip", limit: 5, period: 20) do |req|
   req.ip if req.path == "/api/v1/auth/sign_in" && req.post?
