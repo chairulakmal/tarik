@@ -1,7 +1,7 @@
-# CLAUDE.md — tarik
+# AGENTS.md — tarik
 
-> How tarik is built, and how to help effectively. See README.md for project philosophy
- and SPEC.md for technical details.
+> Primary agent instructions. Tool-agnostic: applies to Claude Code, Cursor, Codex, and
+> any future agent. Project philosophy in README.md. Technical spec in SPEC.md.
 
 ---
 
@@ -118,10 +118,10 @@ PAY.JP is widely used in Japan's Ruby bootcamp and startup ecosystem. Migration 
 
 Both API and frontend support EN and JA from day one.
 
-- **Rails:** `Accept-Language` header sets `I18n.locale`. All user-facing strings use `t()` keys.
+- **Rails:** `Accept-Language` header sets `I18n.locale`. All user-facing strings use `I18n.t()` keys.
 - **Next.js:** `next-intl`, URL structure `/en/...` and `/ja/...`, strings in `lib/i18n/en.json` + `ja.json`.
 
-**Never hardcode English strings in components. Always use `t()`.**
+**Never hardcode English strings in components or views. Always use translation keys.**
 
 ---
 
@@ -168,7 +168,7 @@ cd api && bundle exec rspec           # RSpec + FactoryBot + Shoulda Matchers
 cd frontend && npm test               # Vitest + React Testing Library
 ```
 
-No merge to `main` without green CI. See SPEC.md → Testing Strategy for full scope.
+No merge to `main` without green CI. Run tests after any change that could affect behaviour — do not declare a task done without green tests. See SPEC.md → Testing Strategy for full scope.
 
 ---
 
@@ -198,50 +198,41 @@ See SPEC.md → Deployment Architecture. Two Railway services: `tarik-api` (Rail
 
 ---
 
-## What Claude Should Know
-
-- A clean, readable boilerplate for anyone who wants Rails + Next.js + payments + i18n without glue code to write.
-- The PAY.JP migration guide is a deliberate differentiator — no other Rails boilerplate documents this. Ruby remains the dominant backend language in Japan's tech industry, so PAY.JP and JA i18n are genuine value-adds, not afterthoughts.
-- Prefer explicit over clever. Avoid meta-programming without a strong reason.
-- If a task risks going off-scope, flag it and stay focused on the current phase.
-
----
-
-## Instructions for Claude Code
-
-### Workflow
-
-1. **Read before editing.** Always read a file with the Read tool before using Edit. Never guess at content.
-2. **Run tests after editing.** Run `cd api && bundle exec rspec` and/or `cd frontend && npm test` after any change that could affect behaviour. Do not declare a task done without green tests.
-3. **Never commit or push.** The user handles all git operations. After edits, stop at the file level — do not stage, commit, or push.
-4. **Parallel tool calls.** When two reads or two shell commands are independent, fire them in a single message.
-
-### Phase discipline
-
-Before adding anything, check what phase the project is currently on (see Build Order below). Do not implement features belonging to a later phase. If a request would pull in Phase 8 work while the project is on Phase 7, flag it and ask before proceeding.
-
-### Hard rules
+## Hard Rules
 
 | Context | Rule |
 |---|---|
 | Payment logic | Service objects only — never in controllers or models |
-| i18n strings | Always `t()` — never hardcode English (or Japanese) in components or views |
+| i18n strings | Always use translation keys — never hardcode English (or Japanese) in components or views |
 | Next.js route guard | `proxy.ts` only — never create `middleware.ts` (it is silently ignored in v16) |
 | Auth guard | Client-side only (JWT in `localStorage`) — no cookie mirror, no server-side redirect |
 | Stripe vs pay gem | Use `stripe` gem directly — never the `pay` gem |
 | Raw SQL | Only when ActiveRecord cannot express it |
 | TypeScript `any` | Never |
+| `.env` | Never commit — `.env.example` only |
+| Demo seed | Never run in production — guard with `unless Rails.env.development? \|\| ENV["DEMO_MODE"] == "true"` |
 
-### When to ask vs act
+---
+
+## Phase Discipline
+
+Before adding anything, confirm the current phase (see Build Order below). Do not implement features belonging to a later phase. If a request would pull in later-phase work, flag it and ask before proceeding.
+
+---
+
+## When to Ask vs Act
 
 - **Act without asking:** editing files, running tests, reading code, running linters.
 - **Ask before acting:** destructive operations (drop table, `rm -rf`, `git reset --hard`), pushing to remote, creating PRs, any action visible to others.
 
-### Response style for this project
+---
 
-- Short, direct. No trailing summaries restating what was just changed.
-- Flag scope drift in one sentence, then ask; don't silently expand the task.
-- Cite `file:line` when referencing specific code.
+## What Agents Should Know
+
+- A clean, readable boilerplate for anyone who wants Rails + Next.js + payments + i18n without glue code to write.
+- The PAY.JP migration guide is a deliberate differentiator — no other Rails boilerplate documents this. Ruby remains the dominant backend language in Japan's tech industry, so PAY.JP and JA i18n are genuine value-adds, not afterthoughts.
+- Prefer explicit over clever. Avoid meta-programming without a strong reason.
+- If a task risks going off-scope, flag it and stay focused on the current phase.
 
 ---
 

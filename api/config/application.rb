@@ -33,5 +33,6 @@ module Api
     config.i18n.default_locale = :en
 
     config.middleware.use AcceptLanguage
+    config.middleware.use Rack::Attack
   end
 end

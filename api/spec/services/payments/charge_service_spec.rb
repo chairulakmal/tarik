@@ -26,5 +26,21 @@ RSpec.describe Payments::ChargeService do
         hash_including(amount: 500, currency: "jpy", description: "Pro plan")
       )
     end
+
+    context "in demo mode" do
+      before { ENV["DEMO_MODE"] = "true" }
+      after  { ENV.delete("DEMO_MODE") }
+
+      it "does not call Stripe" do
+        expect(Stripe::PaymentIntent).not_to receive(:create)
+        described_class.new(user).create(amount: 1000, currency: "usd", description: "Demo")
+      end
+
+      it "returns a DemoCharge with an id and client_secret" do
+        result = described_class.new(user).create(amount: 1000, currency: "usd", description: "Demo")
+        expect(result.id).to start_with("demo_pi_")
+        expect(result.client_secret).to eq("demo_secret")
+      end
+    end
   end
 end

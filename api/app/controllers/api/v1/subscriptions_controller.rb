@@ -27,7 +27,7 @@ module Api
       def cancel
         subscription = current_user.subscription
         unless subscription&.active?
-          render json: { error: { message: t("payments.no_active_subscription"), code: "no_active_subscription" } },
+          render json: { error: { message: I18n.t("payments.no_active_subscription"), code: "no_active_subscription" } },
                  status: :unprocessable_entity
           return
         end

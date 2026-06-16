@@ -14,9 +14,12 @@ Devise.setup do |config|
   # explicitly discourages them; they push users toward predictable substitutions
   # (P@ssw0rd) without raising real entropy. Length beats complexity.
   #
-  # Maximum 128 chars — bcrypt truncates input at 72 bytes, so passing an
-  # arbitrarily long password forces full hashing cost on every attempt, which is
-  # a cheap DoS vector. 128 chars comfortably accommodates any passphrase.
+  # Maximum 128 chars — bcrypt silently truncates input at 72 bytes before
+  # hashing, so characters past byte 72 are ignored. Passwords sharing the same
+  # first 72 bytes are therefore identical to bcrypt. 128 is a practical ceiling
+  # that makes the truncation boundary visible and fits any real passphrase.
+  # (The long-password DoS risk — amplified hash cost — applies to PBKDF2/scrypt,
+  # not bcrypt, because bcrypt always hashes exactly 72 bytes regardless of length.)
   #
   # See docs/auth.md → Password policy for the full rationale.
   config.password_length = 15..128

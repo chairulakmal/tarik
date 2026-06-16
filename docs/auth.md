@@ -91,12 +91,16 @@ The only rule that measurably increases real-world entropy is length. Passphrase
 
 ### Why a 128-character maximum?
 
-Devise uses bcrypt, which truncates input at 72 bytes. This creates a subtle but real DoS vector: an attacker can submit a request with a megabyte-long password string, forcing the server to run full bcrypt cost (12 rounds in production) on every attempt. Capping at 128 characters eliminates that attack surface while comfortably accommodating any passphrase.
+bcrypt silently truncates its input at **72 bytes** before hashing. Characters past byte 72 are ignored entirely, which means two passwords that share the same first 72 bytes are considered identical by bcrypt — regardless of what follows. Accepting passwords of unlimited length is therefore misleading: it implies more security while delivering none past the 72-byte mark.
+
+The 128-character cap makes this ceiling visible. Any real passphrase fits comfortably within it, and it bounds the request body size to something reasonable.
+
+The long-password DoS concern — where an attacker submits a megabyte-long string to force expensive hashing — does **not** apply to bcrypt, because bcrypt always hashes exactly 72 bytes regardless of input length. That risk is specific to PBKDF2 and scrypt, which process the full input.
 
 ### What to keep in mind when extending auth
 
 - Do not add complexity validators to `User` — they contradict NIST and degrade UX.
-- Do not raise the cap above 128 without switching to a hashing algorithm that doesn't have the bcrypt truncation issue (e.g. Argon2 via the `argon2` gem).
+- If you switch to Argon2 (`argon2` gem), you can safely raise or remove the 128-char cap — Argon2 processes the full input without truncation.
 - If you add MFA, NIST lowers the minimum to 8 characters. Adjust `config.password_length` in `config/initializers/devise.rb` accordingly.
 
 ## Mobile / other clients

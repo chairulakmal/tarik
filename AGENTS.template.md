@@ -1,6 +1,7 @@
-# CLAUDE.md
+# AGENTS.md
 
 > This project was generated from [tarik](https://github.com/your-org/tarik) — a Rails + Next.js SaaS boilerplate with payments and i18n.
+> Update this file to reflect your own project's conventions as you build.
 
 ---
 
@@ -56,7 +57,7 @@ PAY.JP migration guide: [docs/payjp-migration.md](docs/payjp-migration.md)
 
 ## i18n
 
-- Never hardcode English strings in components — always use `t()`
+- Never hardcode English strings in components — always use translation keys
 - Rails locale files: `api/config/locales/en.yml`, `ja.yml`
 - Next.js locale files: `frontend/lib/i18n/en.json`, `ja.json`
 - URL structure: `/en/...` and `/ja/...`
@@ -85,6 +86,20 @@ Next.js 16 renamed `middleware.ts` → `proxy.ts`:
 
 ---
 
+## Hard rules
+
+| Context | Rule |
+|---|---|
+| Payment logic | Service objects only — never in controllers or models |
+| i18n strings | Always use translation keys — never hardcode English (or Japanese) |
+| Next.js route guard | `proxy.ts` only — never create `middleware.ts` (ignored in v16) |
+| Auth guard | Client-side only (JWT in `localStorage`) — no cookie mirror |
+| Stripe vs pay gem | Use `stripe` gem directly — never the `pay` gem |
+| TypeScript `any` | Never |
+| `.env` | Never commit — `.env.example` only |
+
+---
+
 ## Testing
 
 ```bash
@@ -94,11 +109,10 @@ cd frontend && npm test               # Vitest + React Testing Library
 
 No merge to `main` without green CI.
 
-To add browser (E2E) tests: [docs/playwright.md](docs/playwright.md)
-
 ---
 
 ## Code style
 
-- **Ruby:** RuboCop (`api/.rubocop.yml`). Service objects for business logic. No raw SQL unless ActiveRecord can't express it.
-- **TypeScript/React:** ESLint + Prettier. No `any` types. Server Components by default for public pages; `use client` only when necessary. Authenticated pages are client components by design (JWT lives in `localStorage`) — see [docs/auth.md](docs/auth.md). Tailwind CSS.
+**Ruby:** RuboCop (`api/.rubocop.yml`). Service objects for business logic. No raw SQL unless ActiveRecord can't express it.
+
+**TypeScript/React:** ESLint + Prettier. No `any` types. Server Components by default for public pages; `use client` only when necessary. Authenticated pages are client components by design (JWT lives in `localStorage`) — see [docs/auth.md](docs/auth.md). Tailwind CSS.

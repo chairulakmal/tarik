@@ -1,0 +1,49 @@
+name: Template Setup
+
+# Runs once when someone creates a new repo from this template.
+# Replaces AGENTS.md (tarik dev instructions) with AGENTS.template.md
+# (the starting-point AGENTS.md for the user's own project), then
+# self-deletes so it never runs again.
+#
+# Guard: github.event.repository.is_template is true in the tarik repo
+# (it is marked as a GitHub Template) and false in repos created from it,
+# so this workflow is a no-op in tarik itself.
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  setup:
+    if: "!github.event.repository.is_template"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check whether setup is still needed
+        id: sentinel
+        run: |
+          if [ -f "AGENTS.template.md" ]; then
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Initialize project from template
+        if: steps.sentinel.outputs.needed == 'true'
+        run: |
+          mv AGENTS.template.md AGENTS.md
+          rm -f CLAUDE.template.md
+          rm -f .github/workflows/template-cleanup.yml
+
+      - name: Commit
+        if: steps.sentinel.outputs.needed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: initialize from tarik template"
+          git push
