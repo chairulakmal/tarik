@@ -1,24 +1,58 @@
-# README
+# API — Rails 8
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+The Rails 8 API for tarik. JSON-only, no views. Serves the Next.js frontend and any other HTTP client via `Authorization: Bearer` token.
 
-Things you may want to cover:
+For project-wide setup, architecture, and deployment, see the [root README](../README.md).
 
-* Ruby version
+## Running
 
-* System dependencies
+From the repository root, `bin/dev` starts everything (API + frontend + worker) via foreman — this is the normal way to run the app.
 
-* Configuration
+To run the API alone:
 
-* Database creation
+```bash
+cd api
+bundle exec rails server -p 3001
+```
 
-* Database initialization
+The API listens on `http://localhost:3001` by default.
 
-* How to run the test suite
+## Testing
 
-* Services (job queues, cache servers, search engines, etc.)
+```bash
+cd api
+bundle exec rspec
+```
 
-* Deployment instructions
+RSpec + FactoryBot + Shoulda Matchers. All request specs live under `spec/requests/api/v1/`, service specs under `spec/services/`.
 
-* ...
+## Layout
+
+```
+api/
+├── app/
+│   ├── controllers/api/v1/   # thin controllers — no business logic
+│   ├── models/
+│   ├── services/
+│   │   ├── payment_service.rb          # facade
+│   │   └── payments/
+│   │       ├── charge_service.rb
+│   │       ├── subscription_service.rb
+│   │       └── webhook_service.rb
+│   └── serializers/
+├── config/
+│   ├── locales/              # en.yml, ja.yml
+│   └── initializers/
+├── db/
+└── spec/
+```
+
+## Conventions
+
+- **Controllers are thin.** Business logic lives in service objects under `app/services/`. Controllers only parse params, call services, and render JSON.
+- **Payment logic stays in services.** Never in controllers or models.
+- **i18n everywhere.** Use `I18n.t()` for all user-facing strings. Both EN and JA locale files must be kept in sync.
+- **API envelope.** Success: `{ "data": { ... } }`. Error: `{ "error": { "message": "...", "code": "..." } }`.
+- **Auth.** `authenticate_user!` before action. JWT validated by devise-jwt. No session cookies.
+
+See [`docs/auth.md`](../docs/auth.md) for the full auth rationale and [`docs/payjp-migration.md`](../docs/payjp-migration.md) for switching from Stripe to PAY.JP.

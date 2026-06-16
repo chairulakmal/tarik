@@ -30,7 +30,9 @@ Most Rails boilerplates either bundle a full monolith (views, assets, session co
 
 The backend is a pure Rails API. The included Next.js frontend is the reference consumer — but the API is designed from the start to serve whatever comes next: a React Native app, a third-party integration, a CLI tool. Authorization via `Bearer` token (not cookies) means any HTTP client can authenticate without special configuration. Every decision at the API boundary was made with multiple consumers in mind.
 
-The other thing tarik solves is the repetition. Every Rails SaaS project starts by wiring the same things: Devise, JWTs, Stripe service objects, i18n locale routing, Docker, CI, deployment config. That's usually two or three days of setup that produces no product value. tarik makes those decisions once, documents them, and gets out of the way.
+The other thing tarik solves is the repetition. Every Rails SaaS project starts by wiring the same things: Devise, JWTs, Stripe service objects, i18n locale routing, Docker, CI, deployment config. That's usually two or three days of setup that produces no product value — or, if you're using an AI agent, a lot of expensive tokens spent on decisions that have already been made a thousand times before.
+
+Agents can move fast. But without a clean starting point, they spend your budget re-deriving whether to use Devise or Rodauth, how to structure service objects, where business logic belongs. Every token spent on boilerplate is a token not spent on your product. tarik front-loads all of that: the architecture is decided, the conventions are documented in `AGENTS.md`, and the code is already wired. Your agent — and you — start at product, not at scaffolding.
 
 The JA (Japanese) support is deliberate, not decorative. Ruby remains a popular backend language in Japan's tech industry, and PAY.JP is widely used in Japan's Ruby community — it's a common fixture in bootcamps and entry-level projects. A boilerplate aimed at that ecosystem should document it. tarik ships both, including a migration guide for moving from Stripe to PAY.JP.
 
