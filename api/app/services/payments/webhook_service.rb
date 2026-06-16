@@ -32,7 +32,10 @@ module Payments
       return unless user
 
       stripe_sub = Stripe::Subscription.retrieve(session.subscription)
-      price      = stripe_sub.items.data.first.price
+      # current_period_start/end moved from Subscription to SubscriptionItem
+      # in Stripe API 2024-06-20 (Basil). Always read from the item.
+      item  = stripe_sub.items.data.first
+      price = item.price
 
       user.subscription&.destroy
       user.create_subscription!(
@@ -40,8 +43,8 @@ module Payments
         stripe_price_id:        price.id,
         plan_name:              price.nickname.presence || "pro",
         status:                 stripe_sub.status,
-        current_period_start:   Time.at(stripe_sub.current_period_start).utc,
-        current_period_end:     Time.at(stripe_sub.current_period_end).utc,
+        current_period_start:   Time.at(item.current_period_start).utc,
+        current_period_end:     Time.at(item.current_period_end).utc,
         trial_ends_at:          stripe_sub.trial_end ? Time.at(stripe_sub.trial_end).utc : nil
       )
     end
@@ -50,11 +53,12 @@ module Payments
       subscription = Subscription.find_by(stripe_subscription_id: stripe_sub.id)
       return unless subscription
 
+      item = stripe_sub.items.data.first
       subscription.update!(
         status:               stripe_sub.status,
-        stripe_price_id:      stripe_sub.items.data.first.price.id,
-        current_period_start: Time.at(stripe_sub.current_period_start).utc,
-        current_period_end:   Time.at(stripe_sub.current_period_end).utc,
+        stripe_price_id:      item.price.id,
+        current_period_start: Time.at(item.current_period_start).utc,
+        current_period_end:   Time.at(item.current_period_end).utc,
         trial_ends_at:        stripe_sub.trial_end ? Time.at(stripe_sub.trial_end).utc : nil
       )
     end

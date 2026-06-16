@@ -14,15 +14,17 @@ RSpec.describe Payments::WebhookService do
 
   def fake_stripe_sub(overrides = {})
     price = double("price", id: "price_123", nickname: "Pro")
-    item  = double("item", price: price)
-    double("Stripe::Subscription", {
-      id:                   "sub_123",
-      status:               "active",
-      items:                double(data: [item]),
+    # current_period_start/end live on the item since Stripe API 2024-06-20 (Basil).
+    item  = double("item",
+      price:                price,
       current_period_start: 1.month.ago.to_i,
-      current_period_end:   1.month.from_now.to_i,
-      trial_end:            nil,
-      canceled_at:          nil
+      current_period_end:   1.month.from_now.to_i)
+    double("Stripe::Subscription", {
+      id:          "sub_123",
+      status:      "active",
+      items:       double(data: [item]),
+      trial_end:   nil,
+      canceled_at: nil
     }.merge(overrides))
   end
 

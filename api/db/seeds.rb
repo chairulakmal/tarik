@@ -1,8 +1,13 @@
-# Idempotent demo seed — safe to run on every `bin/setup`.
-# Creates a demo user and an active subscription with fake Stripe IDs.
-# These records exist so the app is immediately usable without real API keys.
+# Demo seed — creates a demo user and active subscription with fake Stripe IDs.
+# Only runs in development or when DEMO_MODE=true is explicitly set.
+# Never seeds in production without that flag — the credentials are public.
 #
 # Sign in: demo@tarik.dev / tarik_demo_password
+
+unless Rails.env.development? || ENV["DEMO_MODE"] == "true"
+  puts "Skipping demo seed (set DEMO_MODE=true to seed in #{Rails.env})"
+  return
+end
 
 demo_user = User.find_or_create_by!(email: "demo@tarik.dev") do |u|
   u.password              = "tarik_demo_password"
