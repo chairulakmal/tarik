@@ -7,7 +7,7 @@
 # Build:  docker build -t tarik-web .
 # Run:    docker run -p 3000:3000 -e NEXT_PUBLIC_API_URL=... tarik-web
 
-ARG NODE_VERSION=22
+ARG NODE_VERSION=24
 FROM node:${NODE_VERSION}-alpine AS base
 
 # ── deps: install production + dev dependencies ────────────────────────────────
