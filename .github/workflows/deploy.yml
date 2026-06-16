@@ -21,8 +21,7 @@ jobs:
         working-directory: api
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service tarik-api --detach
-
+        run: railway up --service tarik-api 
   deploy-web:
     name: Deploy Web
     runs-on: ubuntu-latest
@@ -36,4 +35,4 @@ jobs:
         working-directory: frontend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service tarik-web --detach
+        run: railway up --service tarik-web 
