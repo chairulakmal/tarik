@@ -4,7 +4,7 @@ PAY.JP is widely used in Japan's Ruby bootcamp and startup ecosystem. Both Strip
 
 > **This guide covers PAY.JP v1.** PAY.JP v2 exists with a dedicated Ruby gem ([payjpv2-ruby](https://github.com/payjp/payjpv2-ruby)), but as of this writing v2 does not yet support recurring billing — Plans and Subscriptions remain v1-only. If you only need one-time charges, v2 is an option. Check [docs.pay.jp](https://docs.pay.jp) before starting to confirm the current v2 feature set.
 
-**Estimated effort:** 2–3 days. The service object pattern means payment logic is isolated — no controller or model changes are needed for the core swap.
+**Estimated effort:** 2–4 hours with an AI agent; a day or two without one. The service object pattern isolates all payment logic — no controller or model changes are needed for the core swap. Hand this guide to an agent alongside your codebase and it can execute all nine steps in a single session: the code samples here are complete and ready to apply.
 
 ---
 

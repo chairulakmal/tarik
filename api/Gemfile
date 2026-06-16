@@ -6,6 +6,8 @@ gem "puma", ">= 5.0"
 gem "rack-cors"
 gem "rack-attack"
 gem "redis", ">= 4.0.1"
+gem "thruster", require: false
+gem "image_processing", "~> 1.2"
 gem "rails-i18n"
 gem "devise"
 gem "devise-jwt"
