@@ -14,7 +14,8 @@
     "noAccount": "Don't have an account?",
     "signInLink": "Sign in",
     "signUpLink": "Create one",
-    "errorUnknown": "Something went wrong. Please try again."
+    "errorUnknown": "Something went wrong. Please try again.",
+    "passwordHint": "15 characters minimum — no other requirements."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -45,5 +46,9 @@
     "title": "Payment cancelled",
     "description": "No charge was made. You can try again whenever you're ready.",
     "tryAgainLink": "Try again"
+  },
+  "demo": {
+    "banner": "Demo mode — sign in with demo@tarik.dev / tarik_demo_password — no real payments are processed.",
+    "hint": "Demo mode: no real payment required."
   }
 }

@@ -9,7 +9,7 @@
 - [x] Phase 5 — Payments: Stripe service objects + webhook (Rails), payment form + subscription UI (Next.js)
 - [x] Phase 6 — Fill in EN + JA translations, fix Japanese layout breaks
 - [x] Phase 7 — README, PAY.JP migration guide, inline comments
-- [ ] Phase 8 — Seed data, demo mode, cold-clone test, GitHub Template config
+- [x] Phase 8 — Seed data, demo mode, cold-clone test, GitHub Template config
 
 ---
 

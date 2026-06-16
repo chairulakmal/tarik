@@ -1,12 +1,12 @@
 require "rails_helper"
 
 RSpec.describe "Auth sessions", type: :request do
-  let!(:user) { create(:user, email: "test@example.com", password: "password123") }
+  let!(:user) { create(:user, email: "test@example.com", password: "test_password_123") }
 
   describe "POST /api/v1/auth/sign_in" do
     it "returns 200 and a JWT in the Authorization header" do
       post "/api/v1/auth/sign_in",
-        params: { user: { email: user.email, password: "password123" } },
+        params: { user: { email: user.email, password: "test_password_123" } },
         as: :json
 
       expect(response).to have_http_status(:ok)
@@ -24,7 +24,7 @@ RSpec.describe "Auth sessions", type: :request do
 
     it "returns 401 for unknown email" do
       post "/api/v1/auth/sign_in",
-        params: { user: { email: "nobody@example.com", password: "password123" } },
+        params: { user: { email: "nobody@example.com", password: "test_password_123" } },
         as: :json
 
       expect(response).to have_http_status(:unauthorized)

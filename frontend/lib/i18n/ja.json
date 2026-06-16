@@ -14,7 +14,8 @@
     "noAccount": "アカウントをお持ちでないですか？",
     "signInLink": "ログイン",
     "signUpLink": "作成する",
-    "errorUnknown": "エラーが発生しました。もう一度お試しください。"
+    "errorUnknown": "エラーが発生しました。もう一度お試しください。",
+    "passwordHint": "15文字以上 — その他の制限はありません。"
   },
   "dashboard": {
     "title": "ダッシュボード",
@@ -45,5 +46,9 @@
     "title": "お支払いをキャンセルしました",
     "description": "請求は発生していません。準備ができたらいつでもお試しください。",
     "tryAgainLink": "もう一度試す"
+  },
+  "demo": {
+    "banner": "デモモード — demo@tarik.dev / tarik_demo_password でサインインできます。実際の決済は行われません。",
+    "hint": "デモモード：実際のお支払いは不要です。"
   }
 }

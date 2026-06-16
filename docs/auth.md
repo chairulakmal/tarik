@@ -69,6 +69,36 @@ tarik ships the header-only model because it keeps the API the single source of
 auth truth and treats every client identically. Switching is a local change to the
 frontend; the Rails API does not change.
 
+## Password policy
+
+tarik enforces a single password rule: **minimum 15 characters, no other requirements**.
+
+No uppercase, no numbers, no symbols — just length.
+
+### Why 15 characters?
+
+[NIST SP800-63B §3.1.1](https://pages.nist.gov/800-63-4/sp800-63b.html#passwordver) sets the minimum at 15 characters for systems without MFA. Length is the dominant factor in password entropy. A 15-character passphrase of random words is far harder to crack than an 8-character password forced to include a capital and a symbol.
+
+### Why no complexity rules?
+
+NIST explicitly recommends against complexity requirements. The research shows they backfire:
+
+- Users satisfy them with predictable patterns: `Password1!`, `P@ssw0rd`.
+- The substitutions are well-known and are the first things cracking dictionaries try.
+- Complexity rules make passwords harder to *remember* without making them harder to *crack*.
+
+The only rule that measurably increases real-world entropy is length. Passphrases like `tarik_demo_password` are easy to remember, easy to type, and stronger than `Tr1k!23` against a modern cracking rig.
+
+### Why a 128-character maximum?
+
+Devise uses bcrypt, which truncates input at 72 bytes. This creates a subtle but real DoS vector: an attacker can submit a request with a megabyte-long password string, forcing the server to run full bcrypt cost (12 rounds in production) on every attempt. Capping at 128 characters eliminates that attack surface while comfortably accommodating any passphrase.
+
+### What to keep in mind when extending auth
+
+- Do not add complexity validators to `User` — they contradict NIST and degrade UX.
+- Do not raise the cap above 128 without switching to a hashing algorithm that doesn't have the bcrypt truncation issue (e.g. Argon2 via the `argon2` gem).
+- If you add MFA, NIST lowers the minimum to 8 characters. Adjust `config.password_length` in `config/initializers/devise.rb` accordingly.
+
 ## Mobile / other clients
 
 A mobile app never touches Next.js, `proxy.ts`, or `localStorage`. It calls

@@ -110,7 +110,7 @@ api/app/services/
     └── webhook_service.rb
 ```
 
-PAY.JP is the dominant payment processor in Japan. Migration guide: `docs/payjp-migration.md`. Key differences from Stripe: `card:` vs `source:`, offset pagination, `Plan` vs `Price`, IP-whitelist webhooks, JPY only.
+PAY.JP is widely used in Japan's Ruby bootcamp and startup ecosystem. Migration guide: `docs/payjp-migration.md`. Key differences from Stripe: `card:` vs `source:`, offset pagination, `Plan` vs `Price`, IP-whitelist webhooks, JPY only.
 
 ---
 
@@ -204,6 +204,44 @@ See SPEC.md → Deployment Architecture. Two Railway services: `tarik-api` (Rail
 - The PAY.JP migration guide is a deliberate differentiator — no other Rails boilerplate documents this. Ruby remains the dominant backend language in Japan's tech industry, so PAY.JP and JA i18n are genuine value-adds, not afterthoughts.
 - Prefer explicit over clever. Avoid meta-programming without a strong reason.
 - If a task risks going off-scope, flag it and stay focused on the current phase.
+
+---
+
+## Instructions for Claude Code
+
+### Workflow
+
+1. **Read before editing.** Always read a file with the Read tool before using Edit. Never guess at content.
+2. **Run tests after editing.** Run `cd api && bundle exec rspec` and/or `cd frontend && npm test` after any change that could affect behaviour. Do not declare a task done without green tests.
+3. **Never commit or push.** The user handles all git operations. After edits, stop at the file level — do not stage, commit, or push.
+4. **Parallel tool calls.** When two reads or two shell commands are independent, fire them in a single message.
+
+### Phase discipline
+
+Before adding anything, check what phase the project is currently on (see Build Order below). Do not implement features belonging to a later phase. If a request would pull in Phase 8 work while the project is on Phase 7, flag it and ask before proceeding.
+
+### Hard rules
+
+| Context | Rule |
+|---|---|
+| Payment logic | Service objects only — never in controllers or models |
+| i18n strings | Always `t()` — never hardcode English (or Japanese) in components or views |
+| Next.js route guard | `proxy.ts` only — never create `middleware.ts` (it is silently ignored in v16) |
+| Auth guard | Client-side only (JWT in `localStorage`) — no cookie mirror, no server-side redirect |
+| Stripe vs pay gem | Use `stripe` gem directly — never the `pay` gem |
+| Raw SQL | Only when ActiveRecord cannot express it |
+| TypeScript `any` | Never |
+
+### When to ask vs act
+
+- **Act without asking:** editing files, running tests, reading code, running linters.
+- **Ask before acting:** destructive operations (drop table, `rm -rf`, `git reset --hard`), pushing to remote, creating PRs, any action visible to others.
+
+### Response style for this project
+
+- Short, direct. No trailing summaries restating what was just changed.
+- Flag scope drift in one sentence, then ask; don't silently expand the task.
+- Cite `file:line` when referencing specific code.
 
 ---
 

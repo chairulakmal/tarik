@@ -59,12 +59,14 @@ export default function SignUpPage({
             <input
               type="password"
               required
-              minLength={8}
+              minLength={15}
+              maxLength={128}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full border rounded px-3 py-2 text-sm"
               autoComplete="new-password"
             />
+            <p className="text-xs text-gray-500 mt-1">{t("passwordHint")}</p>
           </div>
 
           {error && (

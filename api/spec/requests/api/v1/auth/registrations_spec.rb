@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "POST /api/v1/auth/sign_up", type: :request do
-  let(:valid_params) { { user: { email: "new@example.com", password: "password123" } } }
+  let(:valid_params) { { user: { email: "new@example.com", password: "test_password_123" } } }
 
   it "creates a user and returns 201" do
     post "/api/v1/auth/sign_up", params: valid_params, as: :json

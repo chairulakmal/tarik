@@ -7,7 +7,19 @@ Devise.setup do |config|
   config.skip_session_storage = [:http_auth]
   config.navigational_formats = []
   config.stretches = Rails.env.test? ? 1 : 12
-  config.password_length = 8..128
+  # Password policy — NIST SP800-63B §3.1.1
+  # https://pages.nist.gov/800-63-4/sp800-63b.html#passwordver
+  #
+  # Minimum 15 chars (NIST threshold without MFA). No complexity rules — NIST
+  # explicitly discourages them; they push users toward predictable substitutions
+  # (P@ssw0rd) without raising real entropy. Length beats complexity.
+  #
+  # Maximum 128 chars — bcrypt truncates input at 72 bytes, so passing an
+  # arbitrarily long password forces full hashing cost on every attempt, which is
+  # a cheap DoS vector. 128 chars comfortably accommodates any passphrase.
+  #
+  # See docs/auth.md → Password policy for the full rationale.
+  config.password_length = 15..128
   config.email_regexp = /\A[^@\s]+@[^@\s]+\z/
   config.timeout_in = 30.minutes
   config.sign_out_via = :delete

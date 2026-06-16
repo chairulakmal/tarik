@@ -32,7 +32,7 @@ The backend is a pure Rails API. The included Next.js frontend is the reference 
 
 The other thing tarik solves is the repetition. Every Rails SaaS project starts by wiring the same things: Devise, JWTs, Stripe service objects, i18n locale routing, Docker, CI, deployment config. That's usually two or three days of setup that produces no product value. tarik makes those decisions once, documents them, and gets out of the way.
 
-The JA (Japanese) support is deliberate, not decorative. Ruby remains a popular backend language in Japan's tech industry, and PAY.JP is the dominant payment processor there. A boilerplate without either is not useful for that market. tarik ships both, including a migration guide for moving from Stripe to PAY.JP.
+The JA (Japanese) support is deliberate, not decorative. Ruby remains a popular backend language in Japan's tech industry, and PAY.JP is widely used in Japan's Ruby community — it's a common fixture in bootcamps and entry-level projects. A boilerplate aimed at that ecosystem should document it. tarik ships both, including a migration guide for moving from Stripe to PAY.JP.
 
 ---
 
@@ -64,7 +64,7 @@ cd your-app
 bin/setup
 ```
 
-`bin/setup` handles everything: Ruby and JS dependencies, `.env` creation, Docker services, database setup. It is idempotent — safe to run more than once.
+`bin/setup` handles everything: Ruby and JS dependencies, `.env` creation, Docker services, database setup. On first run it prompts for your choices — payment processor, locales, Sidekiq, email provider, and file storage — then writes them to `.tarik`. Subsequent runs skip the prompts. It is idempotent and safe to run more than once.
 
 Then start all processes:
 
@@ -77,7 +77,11 @@ bin/dev
 | Frontend | http://localhost:3000 |
 | API | http://localhost:3001 |
 
-Edit `.env` with your Stripe keys and JWT secret before signing up.
+Edit `.env` with your API keys and JWT secret before signing up.
+
+### Try it without API keys (demo mode)
+
+Set `DEMO_MODE=true` and `NEXT_PUBLIC_DEMO_MODE=true` in `.env`, then run `bin/setup`. Seeds create a demo user automatically — sign in with **demo@tarik.dev / tarik_demo_password** to explore the subscription flow without touching Stripe.
 
 ---
 
@@ -142,7 +146,7 @@ Next.js also carries the pieces you'd otherwise assemble by hand: file-based rou
 
 tarik uses the `stripe` gem directly, not the `pay` abstraction. All Stripe logic lives in service objects under `api/app/services/payments/` — nothing in controllers or models.
 
-This structure also makes switching payment processors tractable. See [`docs/payjp-migration.md`](docs/payjp-migration.md) for a step-by-step guide to migrating from Stripe to PAY.JP, which is the dominant payment processor in Japan. The key differences are documented there: token parameter names, pagination model, subscription objects, frontend JS, and webhook verification.
+This structure also makes switching payment processors tractable. See [`docs/payjp-migration.md`](docs/payjp-migration.md) for a step-by-step guide to migrating from Stripe to PAY.JP (v1), which is widely used in Japan's Ruby bootcamp and startup ecosystem. A PAY.JP v2 Ruby gem ([payjpv2-ruby](https://github.com/payjp/payjpv2-ruby)) exists but does not yet support recurring billing. The key differences are documented there: token parameter names (`card:` vs `source:`), offset pagination, subscription objects (`Plan` vs `Price`), frontend JS (PAY.JS vs Stripe.js), and webhook verification (static `X-Payjp-Webhook-Token` header vs Stripe's HMAC signature).
 
 ---
 
@@ -212,6 +216,14 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 ```
 
 Never commit `.env`.
+
+---
+
+## Guides
+
+- [`docs/auth.md`](docs/auth.md) — JWT auth rationale, client-side route guard, and how to switch to `HttpOnly`-cookie auth if you need SSR-protected pages.
+- [`docs/payjp-migration.md`](docs/payjp-migration.md) — Step-by-step migration from Stripe to PAY.JP: service objects, frontend JS, webhook verification, and environment variables.
+- [`docs/playwright.md`](docs/playwright.md) — End-to-end testing setup with Playwright.
 
 ---
 

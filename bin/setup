@@ -164,6 +164,7 @@ step('Docker (db + redis)') { run('docker compose up -d') }
 if Dir.exist?('api')
   step('Ruby gems')  { run('bundle install', chdir: 'api') }
   step('Database')   { run('bin/rails db:create db:migrate', chdir: 'api') }
+  step('Seed data')  { run('bin/rails db:seed', chdir: 'api') }
 else
   skip('Ruby gems', 'api/ not yet created')
   skip('Database',  'api/ not yet created')

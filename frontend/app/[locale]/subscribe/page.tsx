@@ -7,8 +7,11 @@ import { isAuthenticated } from "@/lib/auth";
 import { subscriptions } from "@/lib/api";
 import { stripePromise } from "@/lib/stripe";
 
+const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
 export default function SubscribePage() {
   const t = useTranslations("subscribe");
+  const tDemo = useTranslations("demo");
   const router = useRouter();
   const params = useParams<{ locale: string }>();
   const [loading, setLoading] = useState(false);
@@ -21,7 +24,7 @@ export default function SubscribePage() {
   }, [router, params.locale]);
 
   async function handleSubscribe() {
-    if (!stripePromise) {
+    if (!demoMode && !stripePromise) {
       setError(t("stripeNotConfigured"));
       return;
     }
@@ -62,7 +65,9 @@ export default function SubscribePage() {
           {loading ? t("loading") : t("subscribeButton")}
         </button>
 
-        <p className="text-xs text-center text-gray-500">{t("testCardHint")}</p>
+        <p className="text-xs text-center text-gray-500">
+          {demoMode ? tDemo("hint") : t("testCardHint")}
+        </p>
       </div>
     </main>
   );

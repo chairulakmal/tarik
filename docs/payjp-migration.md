@@ -1,6 +1,8 @@
 # Migrating from Stripe to PAY.JP
 
-PAY.JP is the dominant payment processor in Japan. If your audience is primarily Japanese, PAY.JP is better trusted by Japanese customers and removes the currency conversion friction of Stripe (which settles in USD then converts).
+PAY.JP is widely used in Japan's Ruby bootcamp and startup ecosystem. Both Stripe and PAY.JP settle payouts natively in JPY — the main reasons to prefer PAY.JP for a Japan-focused product are familiarity with Japanese developers, a simpler domestic onboarding process, and Plan-based subscriptions that match how many Japanese developers have learned billing.
+
+> **This guide covers PAY.JP v1.** PAY.JP v2 exists with a dedicated Ruby gem ([payjpv2-ruby](https://github.com/payjp/payjpv2-ruby)), but as of this writing v2 does not yet support recurring billing — Plans and Subscriptions remain v1-only. If you only need one-time charges, v2 is an option. Check [docs.pay.jp](https://docs.pay.jp) before starting to confirm the current v2 feature set.
 
 **Estimated effort:** 2–3 days. The service object pattern means payment logic is isolated — no controller or model changes are needed for the core swap.
 
@@ -14,8 +16,8 @@ PAY.JP is the dominant payment processor in Japan. If your audience is primarily
 | Initializer | `Stripe.api_key` → `Payjp.api_key` |
 | `SubscriptionService` | Checkout Session → direct customer + subscription creation |
 | `ChargeService` | `PaymentIntent` → `Charge` |
-| `WebhookService` | HMAC signature → IP whitelist verification |
-| Webhooks controller | Remove signature check, add IP check |
+| `WebhookService` | HMAC signature → static token header verification |
+| Webhooks controller | Remove signature check, add token check |
 | Frontend subscription flow | Redirect to Stripe Checkout → embedded PAY.JS form |
 | Environment variables | Stripe keys → PAY.JP keys |
 | Database columns | `stripe_*` → `payjp_*` (rename migration) |
@@ -82,7 +84,7 @@ PAY.JP does not have a hosted Checkout page. Instead of redirecting users to an 
 
 The key API differences:
 - PAY.JP uses **Plans** (not Prices). Create them in the PAY.JP dashboard.
-- The `card:` parameter on `Customer.create` or as `Subscription.create` accepts a card token from the frontend.
+- The `card:` parameter on `Customer.create` accepts a card token from the frontend.
 
 ```ruby
 module Payments
@@ -178,32 +180,22 @@ end
 
 ## Step 6 — WebhookService
 
-**PAY.JP does not use HMAC signature verification.** Instead it restricts webhook delivery to a published set of IP addresses. You verify the request IP against that list.
+**PAY.JP does not use HMAC signature verification.** Every webhook request carries a static token in the `X-Payjp-Webhook-Token` header — an account-specific value you copy from the PAY.JP dashboard. You verify authenticity by comparing it to your stored token.
 
-PAY.JP's current webhook IPs are documented at https://pay.jp/docs/webhook. Hardcode them or fetch on deploy — they change infrequently:
+This is simpler than Stripe's per-request HMAC but weaker — treat `PAYJP_WEBHOOK_TOKEN` as a secret and rotate it if it leaks.
 
-```ruby
-PAYJP_WEBHOOK_IPS = %w[
-  54.248.29.209
-  54.248.218.171
-  54.249.82.117
-  54.65.181.154
-  13.112.0.0/16
-].freeze
-```
-
-PAY.JP event types also differ. There is no `checkout.session.completed` — subscriptions are created directly, so you get a `subscription.created` event instead.
+PAY.JP event types differ from Stripe. There is no `checkout.session.completed` — subscriptions are created directly server-side, so you receive `subscription.created` instead.
 
 ```ruby
 module Payments
   class WebhookService
-    def initialize(payload, remote_ip)
-      @payload   = payload
-      @remote_ip = remote_ip
+    def initialize(payload, webhook_token)
+      @payload       = payload
+      @webhook_token = webhook_token
     end
 
     def process
-      raise Payjp::AuthenticationError, "Untrusted IP: #{@remote_ip}" unless trusted_ip?
+      raise Payjp::AuthenticationError, "Invalid webhook token" unless valid_token?
 
       event = JSON.parse(@payload, symbolize_names: false)
       dispatch(event)
@@ -211,15 +203,9 @@ module Payments
 
     private
 
-    PAYJP_WEBHOOK_IPS = %w[
-      54.248.29.209
-      54.248.218.171
-      54.249.82.117
-      54.65.181.154
-    ].freeze
-
-    def trusted_ip?
-      PAYJP_WEBHOOK_IPS.include?(@remote_ip)
+    def valid_token?
+      expected = ENV.fetch("PAYJP_WEBHOOK_TOKEN", nil)
+      expected.present? && ActiveSupport::SecurityUtils.secure_compare(@webhook_token.to_s, expected)
     end
 
     def dispatch(event)
@@ -261,11 +247,12 @@ module Payments
 end
 ```
 
-Update `WebhooksController` to pass `request.remote_ip` instead of a signature header, and remove the Stripe-specific `request.body.read` / `raw_post` handling:
+Update `WebhooksController` to read the `X-Payjp-Webhook-Token` header:
 
 ```ruby
-def stripe  # rename action to :payjp if desired
-  WebhookService.new(request.raw_post, request.remote_ip).process
+def payjp
+  webhook_token = request.headers["X-Payjp-Webhook-Token"]
+  Payments::WebhookService.new(request.raw_post, webhook_token).process
   head :ok
 rescue Payjp::AuthenticationError => e
   render json: { error: e.message }, status: :forbidden
@@ -273,8 +260,6 @@ rescue JSON::ParserError
   render json: { error: "Invalid JSON" }, status: :bad_request
 end
 ```
-
-> **Behind a load balancer or proxy:** `request.remote_ip` will be the proxy IP. Use `request.env["HTTP_X_FORWARDED_FOR"]&.split(",")&.first&.strip` to get the originating IP. Verify against PAY.JP's documented IP list.
 
 ---
 
@@ -413,11 +398,10 @@ NEXT_PUBLIC_STRIPE_PRICE_ID=
 # Add
 PAYJP_SECRET_KEY=sk_live_...          # or sk_test_... for test mode
 PAYJP_PUBLIC_KEY=pk_live_...
+PAYJP_WEBHOOK_TOKEN=whook_...         # copy from PAY.JP dashboard webhook settings
 NEXT_PUBLIC_PAYJP_PUBLIC_KEY=pk_live_...
 NEXT_PUBLIC_PAYJP_PLAN_ID=pln_...     # Plan ID from PAY.JP dashboard
 ```
-
-No `PAYJP_WEBHOOK_SECRET` — verification is IP-based, not HMAC.
 
 ---
 
@@ -427,9 +411,9 @@ No `PAYJP_WEBHOOK_SECRET` — verification is IP-based, not HMAC.
 |---|---|---|
 | Card tokenization | `stripe.js` / Elements | `pay.js` / Elements |
 | Hosted checkout | Stripe Checkout (redirect) | Not available — embed form |
-| Subscription object | `Subscription` + `Price` | `Subscription` + `Plan` |
+| Subscription object | `Subscription` + `Price` | `Subscription` + `Plan` (v1 only) |
 | Charge object | `PaymentIntent` | `Charge` |
-| Webhook verification | HMAC signature (`STRIPE_WEBHOOK_SECRET`) | IP whitelist |
+| Webhook verification | HMAC signature (`Stripe-Signature` header) | Static token (`X-Payjp-Webhook-Token` header) |
 | Currency | Multi-currency | JPY only |
 | Pagination | Cursor-based (`starting_after`) | Offset-based (`offset` + `limit`) |
 | Dashboard | dashboard.stripe.com | pay.jp/dashboard |
@@ -441,19 +425,10 @@ No `PAYJP_WEBHOOK_SECRET` — verification is IP-based, not HMAC.
 
 ## Testing PAY.JP locally
 
-PAY.JP does not have a local webhook CLI equivalent to `stripe listen`. To test webhooks in development:
+PAY.JP provides a CLI tool (`payjp-cli`) for local webhook testing — equivalent to `stripe listen`. Install it and point it at your local server:
 
-1. Use [ngrok](https://ngrok.com) or a similar tunnel to expose `localhost:3001`.
-2. Register the tunnel URL as a webhook endpoint in the PAY.JP dashboard.
-3. Because verification is IP-based, PAY.JP will send from its published IPs — your local `WebhookService` needs to either skip IP verification in development or add your test IP to the allowed list.
-
-Add a development bypass in `WebhookService`:
-
-```ruby
-def trusted_ip?
-  return true if Rails.env.development?
-  PAYJP_WEBHOOK_IPS.include?(@remote_ip)
-end
+```bash
+payjp-cli listen --forward-to localhost:3001/api/v1/webhooks/payjp
 ```
 
-Remove this before deploying to production.
+The CLI injects the correct `X-Payjp-Webhook-Token` header automatically when forwarding, so no special development bypass is needed in `WebhookService`.

@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :user do
     sequence(:email) { |n| "user#{n}@example.com" }
-    password { "password123" }
+    password { "test_password_123" }
     locale { "en" }
   end
 end
