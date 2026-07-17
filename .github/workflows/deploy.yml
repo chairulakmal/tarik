@@ -1,46 +1,81 @@
 name: Deploy
 
+# Deploys are opt-in: jobs no-op (successfully) until the RAILWAY_TOKEN
+# secret is set, so a fresh template repo never starts with a failed run.
+#
+# Required secrets:
+#   RAILWAY_TOKEN — project token from Railway dashboard → Settings → Tokens
+
 on:
   push:
     branches: [main]
-
-# Required secrets:
-#   RAILWAY_TOKEN — project token from Railway dashboard → Settings → Tokens
+  workflow_dispatch:
 
 jobs:
   deploy-api:
     name: Deploy API
     runs-on: ubuntu-latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     steps:
+      # secrets aren't available in job-level `if`, so gate at step level.
+      - name: Check for RAILWAY_TOKEN
+        id: gate
+        run: |
+          if [ -n "$RAILWAY_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "RAILWAY_TOKEN is not set — skipping deploy. Add the secret to enable deploys."
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.configured == 'true'
 
       - uses: actions/setup-node@v4
+        if: steps.gate.outputs.configured == 'true'
         with:
           node-version: '24'
 
       - name: Install Railway CLI
+        if: steps.gate.outputs.configured == 'true'
         run: npm install -g @railway/cli
 
       - name: Deploy tarik-api
+        if: steps.gate.outputs.configured == 'true'
         working-directory: api
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service tarik-api 
+        run: railway up --service tarik-api
+
   deploy-web:
     name: Deploy Web
     runs-on: ubuntu-latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     steps:
+      # secrets aren't available in job-level `if`, so gate at step level.
+      - name: Check for RAILWAY_TOKEN
+        id: gate
+        run: |
+          if [ -n "$RAILWAY_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "RAILWAY_TOKEN is not set — skipping deploy. Add the secret to enable deploys."
+          fi
+
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.configured == 'true'
 
       - uses: actions/setup-node@v4
+        if: steps.gate.outputs.configured == 'true'
         with:
           node-version: '24'
 
       - name: Install Railway CLI
+        if: steps.gate.outputs.configured == 'true'
         run: npm install -g @railway/cli
 
       - name: Deploy tarik-web
+        if: steps.gate.outputs.configured == 'true'
         working-directory: frontend
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service tarik-web 
+        run: railway up --service tarik-web
