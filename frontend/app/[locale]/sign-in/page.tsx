@@ -40,8 +40,9 @@ export default function SignInPage({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">{t("email")}</label>
+            <label htmlFor="email" className="block text-sm font-medium mb-1">{t("email")}</label>
             <input
+              id="email"
               type="email"
               required
               value={email}
@@ -52,8 +53,9 @@ export default function SignInPage({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">{t("password")}</label>
+            <label htmlFor="password" className="block text-sm font-medium mb-1">{t("password")}</label>
             <input
+              id="password"
               type="password"
               required
               value={password}

@@ -27,4 +27,13 @@ Subscription.find_or_create_by!(user: demo_user) do |sub|
   sub.current_period_end     = 1.month.from_now
 end
 
-puts "Seeded: demo@tarik.dev / tarik_demo_password (subscription: active)"
+# Second account with no subscription — shows the empty-state → subscribe
+# journey; the primary demo account starts already subscribed.
+User.find_or_create_by!(email: "demo-new@tarik.dev") do |u|
+  u.password              = "tarik_demo_password"
+  u.password_confirmation = "tarik_demo_password"
+  u.locale                = "en"
+  u.skip_confirmation! if u.respond_to?(:skip_confirmation!)
+end
+
+puts "Seeded: demo@tarik.dev (subscription: active), demo-new@tarik.dev (no subscription) — password: tarik_demo_password"

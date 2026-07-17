@@ -45,7 +45,7 @@ tarik/
 ├── frontend/                   # Next.js 16
 │   ├── app/[locale]/           # /en/..., /ja/...
 │   ├── components/
-│   ├── lib/i18n/               # en.json, ja.json
+│   ├── i18n/                   # en.json, ja.json
 │   └── package.json
 ├── .env.example
 ├── .github/workflows/
@@ -123,7 +123,7 @@ PAY.JP is widely used in Japan's Ruby bootcamp and startup ecosystem. Migration 
 Both API and frontend support EN and JA from day one.
 
 - **Rails:** `Accept-Language` header sets `I18n.locale`. All user-facing strings use `I18n.t()` keys.
-- **Next.js:** `next-intl`, URL structure `/en/...` and `/ja/...`, strings in `lib/i18n/en.json` + `ja.json`.
+- **Next.js:** `next-intl`, URL structure `/en/...` and `/ja/...`, strings in `i18n/en.json` + `ja.json`.
 
 **Never hardcode English strings in components or views. Always use translation keys.**
 

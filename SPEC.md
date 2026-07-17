@@ -90,7 +90,7 @@ tarik/
 │   ├── app/                    # App Router
 │   │   └── [locale]/           # /en/..., /ja/...
 │   ├── components/
-│   ├── lib/i18n/               # en.json, ja.json
+│   ├── i18n/                   # en.json, ja.json
 │   └── package.json
 ├── .env.example
 ├── .github/workflows/
@@ -150,7 +150,7 @@ Choices affect which gems are included in the Gemfile, which locale files are ge
 **Locale choices in detail:**
 
 - `en+ja` (default) — no changes; all locale files remain, routing supports both.
-- `en` — `frontend/i18n/routing.ts` is rewritten to `locales: ['en']`; `frontend/lib/i18n/ja.json` and `api/config/locales/ja.yml` are deleted. Components still use `t()` — EN strings are the only values that need to be in `en.json`.
+- `en` — `frontend/i18n/routing.ts` is rewritten to `locales: ['en']`; `frontend/i18n/ja.json` and `api/config/locales/ja.yml` are deleted. Components still use `t()` — EN strings are the only values that need to be in `en.json`.
 - `ja` — mirror of the above: EN files removed, routing set to `['ja']`.
 
 The `t()` pattern is kept in all cases. A single-locale project benefits from it: strings stay out of JSX and JA can be added later by restoring `ja.json`, adding `'ja'` to `routing.ts`, and running `bin/setup` again.
@@ -249,7 +249,7 @@ Each phase is self-contained and leaves the codebase in a working state. Phases 
 - `npx create-next-app frontend` with TypeScript and App Router
 - `next-intl` installed and configured
 - `[locale]` segment in `app/` — routes resolve to `/en/...` and `/ja/...`
-- `frontend/lib/i18n/en.json` and `ja.json` — stub files with a single key each
+- `frontend/i18n/en.json` and `ja.json` — stub files with a single key each
 - All static strings in components use `t()` from day one — no hardcoded English
 
 **Acceptance criteria:**

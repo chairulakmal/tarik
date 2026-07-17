@@ -65,7 +65,7 @@ jobs:
 
           # User-visible app name.
           sed -i "s/title: 'tarik'/title: '$SLUG'/" "frontend/app/[locale]/layout.tsx"
-          sed -i "s/\"appName\": \"tarik\"/\"appName\": \"$SLUG\"/" frontend/lib/i18n/en.json frontend/lib/i18n/ja.json
+          sed -i "s/\"appName\": \"tarik\"/\"appName\": \"$SLUG\"/" frontend/i18n/en.json frontend/i18n/ja.json
           sed -i "s/app_name: \"tarik\"/app_name: \"$SLUG\"/" api/config/locales/en.yml api/config/locales/ja.yml
 
           echo "Renamed: services $SLUG-api/$SLUG-web, database $SNAKE"

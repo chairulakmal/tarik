@@ -128,8 +128,9 @@ export default function SettingsPage({
         </h2>
         <form onSubmit={handleEmailChange} className="space-y-3">
           <div>
-            <label className={labelClass}>{t("newEmail")}</label>
+            <label htmlFor="new-email" className={labelClass}>{t("newEmail")}</label>
             <input
+              id="new-email"
               type="email"
               required
               value={newEmail}
@@ -139,8 +140,9 @@ export default function SettingsPage({
             />
           </div>
           <div>
-            <label className={labelClass}>{t("currentPassword")}</label>
+            <label htmlFor="email-current-password" className={labelClass}>{t("currentPassword")}</label>
             <input
+              id="email-current-password"
               type="password"
               required
               value={emailPassword}
@@ -169,8 +171,9 @@ export default function SettingsPage({
         </h2>
         <form onSubmit={handlePasswordChange} className="space-y-3">
           <div>
-            <label className={labelClass}>{t("currentPassword")}</label>
+            <label htmlFor="current-password" className={labelClass}>{t("currentPassword")}</label>
             <input
+              id="current-password"
               type="password"
               required
               value={currentPassword}
@@ -180,8 +183,9 @@ export default function SettingsPage({
             />
           </div>
           <div>
-            <label className={labelClass}>{t("newPassword")}</label>
+            <label htmlFor="new-password" className={labelClass}>{t("newPassword")}</label>
             <input
+              id="new-password"
               type="password"
               required
               minLength={15}
@@ -216,8 +220,9 @@ export default function SettingsPage({
         <p className="text-sm text-gray-600">{t("deleteWarning")}</p>
         <form onSubmit={handleDelete} className="space-y-3">
           <div>
-            <label className={labelClass}>{t("currentPassword")}</label>
+            <label htmlFor="delete-password" className={labelClass}>{t("currentPassword")}</label>
             <input
+              id="delete-password"
               type="password"
               required
               value={deletePassword}

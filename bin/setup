@@ -101,7 +101,7 @@ def configure_locales(locales)
   end
 
   [
-    "frontend/lib/i18n/#{remove}.json",
+    "frontend/i18n/#{remove}.json",
     "api/config/locales/#{remove}.yml",
   ].each do |path|
     next unless File.exist?(path)
@@ -179,9 +179,44 @@ def configure_storage(enabled)
   )
 end
 
+# ── preflight ──────────────────────────────────────────────────────────────────
+
+def check(label, ok, hint, fatal: false)
+  if ok
+    puts "  #{label.ljust(32)}\e[32mok\e[0m"
+  elsif fatal
+    puts "  #{label.ljust(32)}\e[31mmissing\e[0m  → #{hint}"
+    exit 1
+  else
+    puts "  #{label.ljust(32)}\e[33mwarning\e[0m  → #{hint}"
+  end
+end
+
+def preflight
+  banner 'Preflight'
+
+  docker_ok = system('docker info', out: File::NULL, err: File::NULL)
+  check('Docker daemon', docker_ok, 'start Docker, then re-run bin/setup', fatal: true)
+
+  wanted_ruby = File.exist?('api/.ruby-version') ? File.read('api/.ruby-version').strip : nil
+  if wanted_ruby
+    check("Ruby #{wanted_ruby}", RUBY_VERSION == wanted_ruby,
+          "running #{RUBY_VERSION} — install #{wanted_ruby} with rbenv/mise")
+  end
+
+  node_version = `node -v 2>/dev/null`.strip
+  check('Node.js >= 24', node_version[/\d+/].to_i >= 24,
+        node_version.empty? ? 'node not found — install Node 24 with nvm/mise' : "running #{node_version} — install Node 24 with nvm/mise")
+
+  foreman_ok = !`which foreman 2>/dev/null`.strip.empty?
+  check('foreman (for bin/dev)', foreman_ok, 'gem install foreman')
+end
+
 # ── main ───────────────────────────────────────────────────────────────────────
 
 puts "\e[1m━━━ tarik setup ━━━\e[0m"
+
+preflight
 
 config = read_config
 

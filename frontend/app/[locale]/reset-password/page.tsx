@@ -48,10 +48,14 @@ function ResetPasswordForm() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label
+                htmlFor="new-password"
+                className="block text-sm font-medium mb-1"
+              >
                 {t("newPassword")}
               </label>
               <input
+                id="new-password"
                 type="password"
                 required
                 minLength={15}

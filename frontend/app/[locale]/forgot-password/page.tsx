@@ -40,10 +40,11 @@ export default function ForgotPasswordPage() {
             <p className="text-sm text-gray-600">{t("forgotPasswordHint")}</p>
 
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label htmlFor="email" className="block text-sm font-medium mb-1">
                 {t("email")}
               </label>
               <input
+                id="email"
                 type="email"
                 required
                 value={email}

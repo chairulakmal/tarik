@@ -104,7 +104,7 @@ bin/dev
 3. Seed the demo account: `cd api && bin/rails db:seed`
 4. Start: `bin/dev`
 
-Sign in with **demo@tarik.dev / tarik_demo_password** to explore the subscription flow without touching Stripe.
+Sign in with **demo@tarik.dev / tarik_demo_password** to explore an active subscription, or **demo-new@tarik.dev** (same password) to walk the empty-state → subscribe flow — all without touching Stripe.
 
 ---
 
@@ -130,7 +130,7 @@ tarik/
 ├── frontend/                   # Next.js 16
 │   ├── app/[locale]/           # /en/..., /ja/...
 │   ├── components/
-│   ├── lib/i18n/               # en.json, ja.json
+│   ├── i18n/                   # en.json, ja.json
 │   └── package.json
 ├── .env.example
 ├── .github/workflows/
@@ -182,7 +182,7 @@ This structure also makes switching payment processors tractable. See [`docs/pay
 
 ## i18n
 
-Both the API and frontend support English and Japanese from the first line of code. URL structure is `/en/...` and `/ja/...`. String keys live in `frontend/lib/i18n/en.json` + `ja.json` and `api/config/locales/en.yml` + `ja.yml`.
+Both the API and frontend support English and Japanese from the first line of code. URL structure is `/en/...` and `/ja/...`. String keys live in `frontend/i18n/en.json` + `ja.json` and `api/config/locales/en.yml` + `ja.yml`.
 
 The `Accept-Language` header sets the API locale per request. The browser locale sets the frontend locale on first visit, with user preference persisted after sign-in.
 

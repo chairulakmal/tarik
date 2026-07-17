@@ -37,7 +37,7 @@ frontend/
 ## Conventions
 
 - **i18n first.** Never hardcode user-facing English — every string goes through
-  `t()`. Add keys to both `lib/i18n/en.json` and `ja.json`.
+  `t()`. Add keys to both `i18n/en.json` and `ja.json`.
 - **Auth is client-side.** The JWT lives in `localStorage` and is sent as
   `Authorization: Bearer`. Protected pages are client components that check for a
   token on mount and redirect to `/[locale]/sign-in` if absent. The API's `401` is

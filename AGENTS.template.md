@@ -63,7 +63,7 @@ PAY.JP migration guide: [docs/payjp-migration.md](docs/payjp-migration.md)
 
 - Never hardcode English strings in components — always use translation keys
 - Rails locale files: `api/config/locales/en.yml`, `ja.yml`
-- Next.js locale files: `frontend/lib/i18n/en.json`, `ja.json`
+- Next.js locale files: `frontend/i18n/en.json`, `ja.json`
 - URL structure: `/en/...` and `/ja/...`
 
 ---
