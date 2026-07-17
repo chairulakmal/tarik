@@ -12,8 +12,15 @@ gem "rails-i18n"
 gem "devise"
 gem "devise-jwt"
 gem "stripe", "~> 13.0"
+gem "sidekiq", "~> 8.0"
+# Uncommented by bin/setup when file storage (S3) is enabled.
+# gem "aws-sdk-s3", require: false
 gem "bootsnap", require: false
 gem "tzinfo-data", platforms: %i[ windows jruby ]
+
+group :development do
+  gem "letter_opener"
+end
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

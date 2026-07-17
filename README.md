@@ -82,7 +82,7 @@ cd tarik
 bin/setup
 ```
 
-`bin/setup` handles everything: Ruby and JS dependencies, `.env` creation, Docker services, database setup. On first run it prompts for your choices — payment processor, locales, Sidekiq, email provider, and file storage — then writes them to `.tarik`. Subsequent runs skip the prompts. It is idempotent and safe to run more than once.
+`bin/setup` handles everything: Ruby and JS dependencies, `.env` creation with generated secrets, Docker services, database setup. On first run it prompts for your choices — payment processor, locales, Sidekiq, email, and file storage — writes them to `.tarik`, and applies them (removes unused locale files, drops the Sidekiq worker, enables SMTP/S3 config). Subsequent runs skip the prompts. It is idempotent and safe to run more than once.
 
 Then start all processes:
 
@@ -95,7 +95,7 @@ bin/dev
 | Frontend | http://localhost:3000 |
 | API | http://localhost:3001 |
 
-Edit `.env` with your API keys and JWT secret before signing up.
+`bin/setup` generates `SECRET_KEY_BASE` and `JWT_SECRET` for you, so auth works immediately. Add your Stripe keys to `.env` when you want real payments — or use demo mode below.
 
 ### Try it without API keys (demo mode)
 
@@ -230,11 +230,10 @@ All environment differences are handled via environment variables.
 
 [`.env.example`](.env.example) is the canonical reference — every variable is listed there with a comment. `bin/setup` copies it to `.env` on first run.
 
-**Required to boot:**
+**Required to boot** (all filled in by `bin/setup` — secrets are generated for you):
 ```bash
 DATABASE_URL
 REDIS_URL
-RAILS_MASTER_KEY
 SECRET_KEY_BASE
 JWT_SECRET
 ```

@@ -2,8 +2,10 @@ name: Template Setup
 
 # Runs once when someone creates a new repo from this template.
 # Replaces AGENTS.md (tarik dev instructions) with AGENTS.template.md
-# (the starting-point AGENTS.md for the user's own project), then
-# self-deletes so it never runs again.
+# (the starting-point AGENTS.md for the user's own project), renames the
+# functional `tarik` identifiers (database names, Railway service names,
+# app title) to the new repository's name, then self-deletes so it never
+# runs again.
 #
 # Guard: github.event.repository.is_template is true in the tarik repo
 # (it is marked as a GitHub Template) and false in repos created from it,
@@ -36,8 +38,37 @@ jobs:
         if: steps.sentinel.outputs.needed == 'true'
         run: |
           mv AGENTS.template.md AGENTS.md
-          rm -f CLAUDE.template.md
           rm -f .github/workflows/template-cleanup.yml
+
+      - name: Rename tarik identifiers to the repository name
+        if: steps.sentinel.outputs.needed == 'true'
+        run: |
+          # SLUG for hostnames/titles (kebab-case), SNAKE for Postgres names.
+          SLUG=$(echo "${GITHUB_REPOSITORY#*/}" | tr '[:upper:]' '[:lower:]' | sed -e 's/[^a-z0-9]\+/-/g' -e 's/^-\+//' -e 's/-\+$//')
+          SNAKE=$(echo "$SLUG" | tr '-' '_')
+          if [ -z "$SLUG" ] || [ "$SLUG" = "tarik" ]; then
+            echo "Nothing to rename (slug: '$SLUG')"
+            exit 0
+          fi
+
+          # Database name, user, and password (local dev + CI only).
+          sed -i "s/tarik/$SNAKE/g" docker-compose.yml api/config/database.yml .github/workflows/ci.yml
+
+          # Railway service names.
+          sed -i -e "s/tarik-api/$SLUG-api/g" -e "s/tarik-web/$SLUG-web/g" .github/workflows/deploy.yml
+
+          # .env.example: database URL + internal Railway hostname.
+          sed -i \
+            -e "s|postgres://tarik:tarik@localhost:5432/tarik_development|postgres://$SNAKE:$SNAKE@localhost:5432/${SNAKE}_development|" \
+            -e "s|tarik-api\.railway\.internal|$SLUG-api.railway.internal|" \
+            .env.example
+
+          # User-visible app name.
+          sed -i "s/title: 'tarik'/title: '$SLUG'/" "frontend/app/[locale]/layout.tsx"
+          sed -i "s/\"appName\": \"tarik\"/\"appName\": \"$SLUG\"/" frontend/lib/i18n/en.json frontend/lib/i18n/ja.json
+          sed -i "s/app_name: \"tarik\"/app_name: \"$SLUG\"/" api/config/locales/en.yml api/config/locales/ja.yml
+
+          echo "Renamed: services $SLUG-api/$SLUG-web, database $SNAKE"
 
       - name: Commit
         if: steps.sentinel.outputs.needed == 'true'

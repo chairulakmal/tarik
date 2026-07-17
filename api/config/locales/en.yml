@@ -11,5 +11,30 @@ en:
     invalid_credentials: "Invalid email or password"
     unauthenticated: "You need to sign in first"
     invalid_locale: "Locale must be en or ja"
+    reset_password_sent: "If that email has an account, a reset link is on its way"
+    password_updated: "Password updated — you can sign in now"
+    confirmation_sent: "If that email has an account, a confirmation link is on its way"
+    confirmed: "Email confirmed — you can sign in now"
+    invalid_current_password: "Current password is incorrect"
   payments:
     no_active_subscription: "No active subscription"
+  devise:
+    mailer:
+      reset_password_instructions:
+        subject: "Reset your password"
+      confirmation_instructions:
+        subject: "Confirm your email address"
+  mailers:
+    reset_password:
+      greeting: "Hi %{email},"
+      body: "Someone requested a password reset for your account. Use the link below to choose a new password."
+      action: "Reset password"
+      ignore: "If you didn't request this, you can safely ignore this email."
+    confirmation:
+      greeting: "Hi %{email},"
+      body: "Confirm your email address with the link below to activate your account."
+      action: "Confirm email"
+    welcome:
+      subject: "Welcome to %{app_name}"
+      greeting: "Hi %{email},"
+      body: "Your account is ready. Sign in any time to manage your subscription."

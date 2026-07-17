@@ -34,5 +34,9 @@ module Api
 
     config.middleware.use AcceptLanguage
     config.middleware.use Rack::Attack
+
+    # :sidekiq when a worker process is running (bin/dev starts one),
+    # :async to run jobs in-process without Sidekiq. Set per environment.
+    config.active_job.queue_adapter = ENV.fetch("ACTIVE_JOB_QUEUE_ADAPTER", "async").to_sym
   end
 end

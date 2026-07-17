@@ -11,5 +11,30 @@ ja:
     invalid_credentials: "メールアドレスまたはパスワードが正しくありません"
     unauthenticated: "最初にサインインしてください"
     invalid_locale: "ロケールはenまたはjaである必要があります"
+    reset_password_sent: "そのメールアドレスにアカウントがある場合、再設定リンクを送信しました"
+    password_updated: "パスワードを更新しました — サインインできます"
+    confirmation_sent: "そのメールアドレスにアカウントがある場合、確認リンクを送信しました"
+    confirmed: "メールアドレスを確認しました — サインインできます"
+    invalid_current_password: "現在のパスワードが正しくありません"
   payments:
     no_active_subscription: "有効なサブスクリプションがありません"
+  devise:
+    mailer:
+      reset_password_instructions:
+        subject: "パスワードの再設定"
+      confirmation_instructions:
+        subject: "メールアドレスの確認"
+  mailers:
+    reset_password:
+      greeting: "%{email} 様"
+      body: "アカウントのパスワード再設定がリクエストされました。以下のリンクから新しいパスワードを設定してください。"
+      action: "パスワードを再設定"
+      ignore: "心当たりがない場合は、このメールを無視してください。"
+    confirmation:
+      greeting: "%{email} 様"
+      body: "以下のリンクからメールアドレスを確認して、アカウントを有効化してください。"
+      action: "メールアドレスを確認"
+    welcome:
+      subject: "%{app_name} へようこそ"
+      greeting: "%{email} 様"
+      body: "アカウントの登録が完了しました。いつでもサインインしてサブスクリプションを管理できます。"

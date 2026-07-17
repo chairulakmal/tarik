@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require 'fileutils'
+require 'securerandom'
 
 TARIK_FILE  = '.tarik'
 ENV_EXAMPLE = '.env.example'
@@ -110,6 +111,74 @@ def configure_locales(locales)
   end
 end
 
+# ── sidekiq / email / storage setup ───────────────────────────────────────────
+
+def note(path, verb, detail)
+  puts "  #{path.ljust(32)}\e[32m#{verb}\e[0m  (#{detail})"
+end
+
+def uncomment_env_vars(vars, reason)
+  content = File.read(ENV_EXAMPLE)
+  vars.each { |v| content = content.sub(/^# (#{Regexp.escape(v)}=)/, '\1') }
+  File.write(ENV_EXAMPLE, content)
+  note(ENV_EXAMPLE, 'updated', reason)
+end
+
+def configure_sidekiq(enabled)
+  return if enabled
+
+  procfile = 'Procfile.dev'
+  if File.exist?(procfile)
+    lines = File.readlines(procfile).reject { |l| l.start_with?('worker:') }
+    File.write(procfile, lines.join)
+    note(procfile, 'updated', 'worker process removed')
+  end
+
+  content = File.read(ENV_EXAMPLE)
+  File.write(ENV_EXAMPLE, content.sub('ACTIVE_JOB_QUEUE_ADAPTER=sidekiq', 'ACTIVE_JOB_QUEUE_ADAPTER=async'))
+  note(ENV_EXAMPLE, 'updated', 'jobs run in-process (:async)')
+end
+
+def configure_email(enabled)
+  return unless enabled
+
+  uncomment_env_vars(
+    %w[SMTP_ADDRESS SMTP_PORT SMTP_USERNAME SMTP_PASSWORD MAILER_FROM MAILER_HOST],
+    'SMTP vars enabled — fill in for production'
+  )
+end
+
+def configure_confirmable(enabled)
+  return unless enabled
+
+  path = 'api/app/models/user.rb'
+  content = File.read(path)
+  File.write(path, content.sub('# :confirmable,', ':confirmable,'))
+  note(path, 'updated', 'email verification required on sign-up')
+end
+
+def configure_storage(enabled)
+  return unless enabled
+
+  gemfile = 'api/Gemfile'
+  content = File.read(gemfile)
+  File.write(gemfile, content.sub('# gem "aws-sdk-s3"', 'gem "aws-sdk-s3"'))
+  note(gemfile, 'updated', 'aws-sdk-s3 enabled')
+
+  storage_yml = 'api/config/storage.yml'
+  content = File.read(storage_yml)
+  amazon_block = content[/^# amazon:\n(?:^#.*\n)*/]
+  if amazon_block
+    File.write(storage_yml, content.sub(amazon_block, amazon_block.gsub(/^# /, '')))
+    note(storage_yml, 'updated', 'S3 service enabled')
+  end
+
+  uncomment_env_vars(
+    %w[AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_REGION AWS_BUCKET],
+    'AWS vars enabled — fill in your bucket'
+  )
+end
+
 # ── main ───────────────────────────────────────────────────────────────────────
 
 puts "\e[1m━━━ tarik setup ━━━\e[0m"
@@ -123,14 +192,16 @@ if config.empty?
   locales = prompt('Supported locales?',  %w[en ja en+ja],    'en+ja')
   sidekiq = ask_yes_no('Include Sidekiq?',                    true)
   email   = ask_yes_no('Include transactional email?',        false)
+  confirm = email && ask_yes_no('Require email verification on sign-up?', false)
   storage = ask_yes_no('Include file storage (S3)?',          false)
 
   config = {
-    'payment' => payment,
-    'locales' => locales,
-    'sidekiq' => sidekiq.to_s,
-    'email'   => email.to_s,
-    'storage' => storage.to_s
+    'payment'     => payment,
+    'locales'     => locales,
+    'sidekiq'     => sidekiq.to_s,
+    'email'       => email.to_s,
+    'confirmable' => confirm.to_s,
+    'storage'     => storage.to_s
   }
   write_config(config)
   puts "\n  Saved to .tarik\n"
@@ -139,6 +210,15 @@ if config.empty?
   puts "  After that, edit AGENTS.md to describe your project's own conventions."
 
   configure_locales(config['locales'])
+  configure_sidekiq(config['sidekiq'] == 'true')
+  configure_email(config['email'] == 'true')
+  configure_confirmable(config['confirmable'] == 'true')
+  configure_storage(config['storage'] == 'true')
+
+  if config['payment'] == 'payjp'
+    puts "\n  \e[33mNote:\e[0m Stripe is what ships wired. To migrate to PAY.JP, follow"
+    puts '  docs/payjp-migration.md — it covers service objects, frontend JS, and webhooks.'
+  end
 else
   banner 'Configuration'
   summary = config.map { |k, v| "#{k}=#{v}" }.join(', ')
@@ -148,11 +228,17 @@ end
 
 banner 'Setup'
 
-# .env
+# .env — copy the example and fill in the generatable secrets.
 if File.exist?(ENV_FILE)
   skip('.env', 'already exists')
 else
-  step('.env') { FileUtils.cp(ENV_EXAMPLE, ENV_FILE) }
+  step('.env (with generated secrets)') do
+    FileUtils.cp(ENV_EXAMPLE, ENV_FILE)
+    env = File.read(ENV_FILE)
+    env = env.sub(/^SECRET_KEY_BASE=$/, "SECRET_KEY_BASE=#{SecureRandom.hex(64)}")
+    env = env.sub(/^JWT_SECRET=$/,      "JWT_SECRET=#{SecureRandom.hex(64)}")
+    File.write(ENV_FILE, env)
+  end
 end
 
 # Docker
@@ -175,4 +261,6 @@ else
   skip('Node modules', 'frontend/ not yet created')
 end
 
-puts "\n\e[1m━━━ Done. Run: bin/dev ━━━\e[0m\n"
+puts "\n\e[1m━━━ Done. Run: bin/dev ━━━\e[0m"
+puts '  Works out of the box:  auth (sign-up/sign-in), demo mode (see README)'
+puts "  Needs your keys:       Stripe payments — set STRIPE_* in .env\n\n"
