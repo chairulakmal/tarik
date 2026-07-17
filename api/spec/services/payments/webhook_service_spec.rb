@@ -6,8 +6,9 @@ RSpec.describe Payments::WebhookService do
   before { ENV["STRIPE_WEBHOOK_SECRET"] = "whsec_test" }
   after  { ENV.delete("STRIPE_WEBHOOK_SECRET") }
 
-  def build_event(type, object)
+  def build_event(type, object, id: "evt_test_1")
     double("Stripe::Event",
+      id:   id,
       type: type,
       data: double("data", object: object))
   end
@@ -48,6 +49,27 @@ RSpec.describe Payments::WebhookService do
       described_class.new(payload, sig_header).process
       expect(user.reload.subscription).to be_present
       expect(user.subscription.status).to eq("active")
+    end
+
+    it "ignores a duplicate delivery of the same event" do
+      described_class.new(payload, sig_header).process
+      first_subscription_id = user.reload.subscription.id
+
+      expect {
+        described_class.new(payload, sig_header).process
+      }.not_to change { user.reload.subscription.id }
+      expect(user.subscription.id).to eq(first_subscription_id)
+    end
+
+    it "processes distinct events independently" do
+      described_class.new(payload, sig_header).process
+
+      second = build_event("checkout.session.completed", session_object, id: "evt_test_2")
+      allow(Stripe::Webhook).to receive(:construct_event).and_return(second)
+
+      expect {
+        described_class.new(payload, sig_header).process
+      }.to change { user.reload.subscription.id }
     end
 
     it "raises on invalid signature" do

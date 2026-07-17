@@ -15,7 +15,7 @@ class ApplicationController < ActionController::API
   end
 
   def not_found(_exception)
-    render_error t("errors.not_found"), code: "not_found", status: :not_found
+    render_error I18n.t("errors.not_found"), code: "not_found", status: :not_found
   end
 
   def unprocessable_entity(exception)

@@ -49,10 +49,13 @@ export type Subscription = {
 
 export const auth = {
   signUp: (email: string, password: string) =>
-    request<ApiResponse<User>>("/api/v1/auth/sign_up", {
-      method: "POST",
-      body: JSON.stringify({ user: { email, password } }),
-    }),
+    request<ApiResponse<User & { confirmationRequired?: boolean }>>(
+      "/api/v1/auth/sign_up",
+      {
+        method: "POST",
+        body: JSON.stringify({ user: { email, password } }),
+      }
+    ),
 
   signIn: (email: string, password: string) =>
     request<ApiResponse<User>>("/api/v1/auth/sign_in", {
@@ -75,6 +78,46 @@ export const auth = {
     request<ApiResponse<User>>("/api/v1/users/me", {
       method: "PATCH",
       body: JSON.stringify({ user: { locale } }),
+    }),
+
+  requestPasswordReset: (email: string) =>
+    request<ApiResponse<{ message: string }>>("/api/v1/auth/password", {
+      method: "POST",
+      body: JSON.stringify({ user: { email } }),
+    }),
+
+  resetPassword: (token: string, password: string) =>
+    request<ApiResponse<{ message: string }>>("/api/v1/auth/password", {
+      method: "PUT",
+      body: JSON.stringify({ user: { reset_password_token: token, password } }),
+    }),
+
+  // Only routed when :confirmable is enabled on the API (see bin/setup).
+  confirmEmail: (token: string) =>
+    request<ApiResponse<{ message: string }>>(
+      `/api/v1/auth/confirmation?confirmation_token=${encodeURIComponent(token)}`
+    ),
+
+  updateEmail: (email: string, currentPassword: string) =>
+    request<ApiResponse<User>>("/api/v1/users/me/email", {
+      method: "PATCH",
+      body: JSON.stringify({
+        user: { email, current_password: currentPassword },
+      }),
+    }),
+
+  updatePassword: (currentPassword: string, password: string) =>
+    request<ApiResponse<User>>("/api/v1/users/me/password", {
+      method: "PATCH",
+      body: JSON.stringify({
+        user: { password, current_password: currentPassword },
+      }),
+    }),
+
+  deleteAccount: (currentPassword: string) =>
+    request<ApiResponse<Record<string, never>>>("/api/v1/users/me", {
+      method: "DELETE",
+      body: JSON.stringify({ user: { current_password: currentPassword } }),
     }),
 };
 

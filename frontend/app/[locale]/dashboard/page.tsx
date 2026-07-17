@@ -123,12 +123,20 @@ export default function DashboardPage({
         )}
       </section>
 
-      <button
-        onClick={handleSignOut}
-        className="border rounded px-4 py-2 text-sm hover:bg-gray-50"
-      >
-        {t("signOut")}
-      </button>
+      <div className="flex items-center gap-4">
+        <Link
+          href={`/${locale}/settings`}
+          className="border rounded px-4 py-2 text-sm hover:bg-gray-50"
+        >
+          {t("settings")}
+        </Link>
+        <button
+          onClick={handleSignOut}
+          className="border rounded px-4 py-2 text-sm hover:bg-gray-50"
+        >
+          {t("signOut")}
+        </button>
+      </div>
     </main>
   );
 }

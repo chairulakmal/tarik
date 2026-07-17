@@ -1,7 +1,10 @@
 require "devise/orm/active_record"
 
 Devise.setup do |config|
-  config.mailer_sender = "no-reply@example.com"
+  config.mailer_sender = ENV.fetch("MAILER_FROM", "no-reply@example.com")
+  # Custom mailer whose action links point at the frontend, not the API.
+  config.mailer = "AuthMailer"
+  config.parent_mailer = "ApplicationMailer"
   config.case_insensitive_keys = [ :email ]
   config.strip_whitespace_keys = [ :email ]
   config.skip_session_storage = [ :http_auth ]

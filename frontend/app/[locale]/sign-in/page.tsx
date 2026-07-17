@@ -74,6 +74,12 @@ export default function SignInPage({
           >
             {loading ? t("loading") : t("signInButton")}
           </button>
+
+          <p className="text-center text-sm">
+            <Link href="../forgot-password" className="text-gray-600 underline">
+              {t("forgotPassword")}
+            </Link>
+          </p>
         </form>
 
         <p className="text-center text-sm text-gray-600">

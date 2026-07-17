@@ -13,6 +13,9 @@ demo_user = User.find_or_create_by!(email: "demo@tarik.dev") do |u|
   u.password              = "tarik_demo_password"
   u.password_confirmation = "tarik_demo_password"
   u.locale                = "en"
+  # Only defined when :confirmable is enabled — the demo account must work
+  # without clicking a confirmation email.
+  u.skip_confirmation! if u.respond_to?(:skip_confirmation!)
 end
 
 Subscription.find_or_create_by!(user: demo_user) do |sub|

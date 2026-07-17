@@ -9,6 +9,9 @@ module Payments
       event = Stripe::Webhook.construct_event(
         @payload, @sig_header, ENV.fetch("STRIPE_WEBHOOK_SECRET")
       )
+      # Stripe retries deliveries — a replayed event must be a no-op.
+      return unless ProcessedStripeEvent.record(event.id)
+
       dispatch(event)
     end
 

@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/api";
-import { setToken } from "@/lib/auth";
 
 export default function SignUpPage({
   params,
@@ -18,13 +17,20 @@ export default function SignUpPage({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [confirmationSent, setConfirmationSent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      await auth.signUp(email, password);
+      const { data: newUser } = await auth.signUp(email, password);
+      // With :confirmable enabled on the API, sign-in is blocked until the
+      // email is confirmed — show a notice instead of signing in.
+      if (newUser.confirmationRequired) {
+        setConfirmationSent(true);
+        return;
+      }
       const { data } = await auth.signIn(email, password);
       void data;
       const { locale } = await params;
@@ -34,6 +40,22 @@ export default function SignUpPage({
     } finally {
       setLoading(false);
     }
+  }
+
+  if (confirmationSent) {
+    return (
+      <main className="flex flex-1 items-center justify-center px-4">
+        <div className="w-full max-w-sm space-y-6 text-center">
+          <h1 className="text-2xl font-bold">{t("checkEmailTitle")}</h1>
+          <p className="text-sm text-gray-600">{t("checkEmail")}</p>
+          <p className="text-sm text-gray-600">
+            <Link href="../sign-in" className="underline">
+              {t("backToSignIn")}
+            </Link>
+          </p>
+        </div>
+      </main>
+    );
   }
 
   return (

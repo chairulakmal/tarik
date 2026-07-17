@@ -16,6 +16,14 @@ RSpec.describe "POST /api/v1/auth/sign_up", type: :request do
     expect(response.headers["Authorization"]).to be_nil
   end
 
+  it "flags confirmationRequired when the account is not yet active (confirmable enabled)" do
+    allow_any_instance_of(User).to receive(:active_for_authentication?).and_return(false)
+    post "/api/v1/auth/sign_up", params: valid_params, as: :json
+
+    expect(response).to have_http_status(:created)
+    expect(json_data["confirmationRequired"]).to be true
+  end
+
   it "returns 422 for duplicate email" do
     create(:user, email: "new@example.com")
     post "/api/v1/auth/sign_up", params: valid_params, as: :json

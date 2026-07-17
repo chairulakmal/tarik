@@ -16,7 +16,11 @@ module Api
 
         def respond_with(resource, _opts = {})
           if resource.persisted?
-            render json: { data: serialize_user(resource) }, status: :created
+            # With :confirmable enabled, sign-in is blocked until the email is
+            # confirmed — tell the client so it can show a "check your email" notice.
+            payload = serialize_user(resource)
+            payload[:confirmationRequired] = true unless resource.active_for_authentication?
+            render json: { data: payload }, status: :created
           else
             render json: {
               error: { message: resource.errors.full_messages.join(", "), code: "validation_error" }
