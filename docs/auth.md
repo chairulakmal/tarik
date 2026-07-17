@@ -69,6 +69,31 @@ tarik ships the header-only model because it keeps the API the single source of
 auth truth and treats every client identically. Switching is a local change to the
 frontend; the Rails API does not change.
 
+## Password reset & account management
+
+The full account lifecycle keeps the same header-only, frontend-agnostic model:
+
+- **Password reset** (`:recoverable`): `POST /api/v1/auth/password` with an email
+  always returns `200` — whether or not the account exists — so the endpoint
+  can't be used to enumerate users. If the account exists, `AuthMailer` sends a
+  link to `FRONTEND_URL/<locale>/reset-password?token=…` in the user's saved
+  locale; the frontend page submits the token and new password via
+  `PUT /api/v1/auth/password`. Requests are rate-limited (5/hour per IP).
+- **Account changes**: `PATCH /api/v1/users/me/email`,
+  `PATCH /api/v1/users/me/password`, and `DELETE /api/v1/users/me` all require
+  the **current password** in the request body (Devise `update_with_password`).
+  A stolen JWT alone can't change credentials or destroy the account.
+- **Email verification** (`:confirmable`) is optional and off by default. It's a
+  `bin/setup` toggle: the columns are already migrated, and enabling it
+  uncomments `:confirmable` in `user.rb`. With it on, sign-up responds with
+  `confirmationRequired: true` instead of allowing sign-in, the confirmation
+  email links to `FRONTEND_URL/<locale>/confirm?confirmation_token=…`, and
+  `GET /api/v1/auth/confirmation` consumes the token. The frontend "check your
+  email" and confirm pages ship either way and are simply unused while it's off.
+
+Reset and confirmation emails open in the browser in development
+(`letter_opener`) — no SMTP needed until production.
+
 ## Password policy
 
 tarik enforces a single password rule: **minimum 15 characters, no other requirements**.

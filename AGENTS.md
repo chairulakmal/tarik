@@ -50,7 +50,8 @@ tarik/
 ├── .env.example
 ├── .github/workflows/
 │   ├── ci.yml
-│   └── deploy.yml
+│   ├── deploy.yml
+│   └── template-cleanup.yml
 ├── docker-compose.yml
 ├── Procfile.dev
 └── bin/
@@ -69,7 +70,7 @@ bin/setup   # installs deps, copies .env.example → .env, starts Docker, prepar
 bin/dev     # starts Rails (3001) + Next.js (3000) + Sidekiq via foreman
 ```
 
-`bin/setup` is idempotent. On first run it prompts for payment processor, locales, Sidekiq, email, and storage choices, then writes them to `.tarik`. Subsequent runs skip the prompts. See SPEC.md → Interactive Setup and `.tarik` Config.
+`bin/setup` is idempotent. On first run it prompts for payment processor, locales, Sidekiq, email (plus optional email verification), and storage choices, writes them to `.tarik`, and applies them to the codebase (locale files, Procfile, Gemfile, config). It also generates `SECRET_KEY_BASE` and `JWT_SECRET` into `.env`. Subsequent runs skip the prompts. See SPEC.md → Interactive Setup and `.tarik` Config.
 
 `bin/dev` requires `gem install foreman`.
 
@@ -90,6 +91,9 @@ In production, `API_URL` (server-side only) can point to an internal Railway hos
 - Client stores token and attaches it as `Authorization: Bearer <token>` on every subsequent request
 - Flow: `POST /api/v1/auth/sign_in` → JWT in response header → client stores → sent on every request → validated by Devise JWT strategy
 - Token revocation via denylist (`jwt_denylist` table) on sign-out
+- Password reset (`:recoverable`): `POST/PUT /api/v1/auth/password`; emails link to the frontend via `FRONTEND_URL` (`AuthMailer`)
+- Email verification (`:confirmable`) is a `bin/setup` toggle, off by default — columns are pre-migrated, enabling it uncomments the module in `user.rb`
+- Account management: `PATCH users/me/email`, `PATCH users/me/password`, `DELETE users/me` — all require the current password server-side
 
 This keeps the API frontend-agnostic — web, mobile, and other clients all use the same mechanism.
 
@@ -110,7 +114,7 @@ api/app/services/
     └── webhook_service.rb
 ```
 
-PAY.JP is widely used in Japan's Ruby bootcamp and startup ecosystem. Migration guide: `docs/payjp-migration.md`. Key differences from Stripe: `card:` vs `source:`, offset pagination, `Plan` vs `Price`, IP-whitelist webhooks, JPY only.
+PAY.JP is widely used in Japan's Ruby bootcamp and startup ecosystem. Migration guide: `docs/payjp-migration.md`. Key differences from Stripe: `card:` vs `source:`, offset pagination, `Plan` vs `Price`, static-token webhooks (`X-Payjp-Webhook-Token`), JPY only.
 
 ---
 
@@ -186,7 +190,7 @@ docker compose down -v        # stop + wipe volumes
 
 ## Deployment
 
-See SPEC.md → Deployment Architecture. Two Railway services: `tarik-api` (Rails) and `tarik-web` (Next.js). No hardcoded Railway config — env vars only.
+See SPEC.md → Deployment Architecture and [docs/deployment.md](docs/deployment.md) for the walkthrough. Two Railway services: `tarik-api` (Rails) and `tarik-web` (Next.js). Deploys are opt-in — the Deploy workflow no-ops until the `RAILWAY_TOKEN` secret is set. No hardcoded Railway config — env vars only.
 
 ---
 

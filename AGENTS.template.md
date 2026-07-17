@@ -36,6 +36,9 @@ bin/dev     # starts Rails (3001) + Next.js (3000) + Sidekiq via foreman
 - Client stores token and sends it on every request as `Authorization: Bearer <token>`
 - Token revocation via `jwt_denylist` table on sign-out
 - Flow: `POST /api/v1/auth/sign_in` → JWT → client stores → sent on every request
+- Password reset: `POST/PUT /api/v1/auth/password` — emails link to the frontend via `FRONTEND_URL`
+- Account changes (`users/me/email`, `users/me/password`, `DELETE users/me`) require the current password
+- Email verification (`:confirmable`) is optional — enabled at `bin/setup` time; see [docs/auth.md](docs/auth.md)
 
 ---
 
@@ -109,6 +112,12 @@ cd frontend && npm test               # Vitest + React Testing Library
 ```
 
 No merge to `main` without green CI.
+
+---
+
+## Deployment
+
+Railway, two services built from `api/Dockerfile` and `frontend/Dockerfile`. The Deploy workflow no-ops until the `RAILWAY_TOKEN` GitHub secret is set. Walkthrough: [docs/deployment.md](docs/deployment.md).
 
 ---
 

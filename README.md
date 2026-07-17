@@ -135,7 +135,8 @@ tarik/
 ├── .env.example
 ├── .github/workflows/
 │   ├── ci.yml
-│   └── deploy.yml
+│   ├── deploy.yml
+│   └── template-cleanup.yml
 ├── docker-compose.yml
 ├── Procfile.dev
 └── bin/
@@ -148,6 +149,8 @@ tarik/
 ## Auth
 
 Sign-up and sign-in hit the Rails API, which issues a JWT via Devise. The token is returned in the `Authorization: Bearer <token>` response header and stored by the client. Every subsequent request attaches it as `Authorization: Bearer <token>`; the Rails JWT strategy validates it.
+
+Beyond sign-in, the full account lifecycle is wired: **password reset** (email link → frontend reset page), a **settings page** (change email, change password, delete account — each gated on the current password server-side), and optional **email verification** on sign-up (a `bin/setup` toggle, off by default). Reset and verification emails link to the frontend via `FRONTEND_URL` in the user's locale.
 
 Route protection in Next.js is client-side: protected pages are client components that check for a token on mount and redirect unauthenticated users to `/sign-in`. `proxy.ts` handles locale routing only. The real security boundary is the API returning `401` — a client guard is just UX. See [`docs/auth.md`](docs/auth.md) for the full rationale (and how to switch to cookie-based SSR if you need it).
 
@@ -218,11 +221,13 @@ tarik deployment defaults to [Railway](https://railway.app). Two services, one p
 - `tarik-api` — Rails, built from `api/Dockerfile`
 - `tarik-web` — Next.js, built from `frontend/Dockerfile`
 
-Railway provides managed PostgreSQL and Redis. GitHub Actions deploys automatically on merge to `main`. Pull requests get Railway preview environments.
+Railway provides managed PostgreSQL and Redis. Deploys are **opt-in**: the GitHub Actions Deploy workflow skips itself (successfully) until you add a `RAILWAY_TOKEN` secret, then deploys both services on every merge to `main`. Migrations run automatically on boot (`db:prepare`).
+
+Step-by-step walkthrough — project creation, service naming, variables, Stripe webhook, PR previews: [`docs/deployment.md`](docs/deployment.md).
 
 All environment differences are handled via environment variables.
 
-> The app is not coupled to Railway and can run on any platform.
+> The app is not coupled to Railway and can run on any platform — the Dockerfiles work anywhere containers do.
 
 ---
 
@@ -241,7 +246,6 @@ JWT_SECRET
 **Required for payments (Stripe):**
 ```bash
 STRIPE_SECRET_KEY
-STRIPE_PUBLISHABLE_KEY
 STRIPE_WEBHOOK_SECRET
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 NEXT_PUBLIC_STRIPE_PRICE_ID        # Price ID of the plan shown on the subscribe page
@@ -252,13 +256,16 @@ NEXT_PUBLIC_STRIPE_PRICE_ID        # Price ID of the plan shown on the subscribe
 NEXT_PUBLIC_API_URL
 ```
 
+**Optional blocks** (email/SMTP, S3 storage) are documented inline in `.env.example`; `bin/setup` uncomments the ones you enable. `FRONTEND_URL` (used in password-reset email links) and `ACTIVE_JOB_QUEUE_ADAPTER` ship active with local defaults.
+
 Never commit `.env`.
 
 ---
 
 ## Guides
 
-- [`docs/auth.md`](docs/auth.md) — JWT auth rationale, client-side route guard, and how to switch to `HttpOnly`-cookie auth if you need SSR-protected pages.
+- [`docs/auth.md`](docs/auth.md) — JWT auth rationale, client-side route guard, password reset and account management, and how to switch to `HttpOnly`-cookie auth if you need SSR-protected pages.
+- [`docs/deployment.md`](docs/deployment.md) — Cold-start Railway walkthrough: services, variables, Stripe webhook, and the opt-in deploy workflow.
 - [`docs/payjp-migration.md`](docs/payjp-migration.md) — Step-by-step migration from Stripe to PAY.JP: service objects, frontend JS, webhook verification, and environment variables.
 - [`docs/playwright.md`](docs/playwright.md) — End-to-end testing setup with Playwright.
 

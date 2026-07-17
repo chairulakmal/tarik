@@ -34,7 +34,7 @@ The goal is a clean starting point that a small team or solo developer can fork,
 
 - **CMS or admin panel.** Not included. Add your own if you need one.
 - **Multi-tenancy.** Tenant isolation is product-specific. tarik gives you the foundation; you add the scope.
-- **Email sending.** No transactional email provider or mailer templates are included. Add Postmark, Sendgrid, or similar — ActionMailer is available for it.
+- **Email provider SDKs.** Transactional email ships wired (ActionMailer, `letter_opener` in development, SMTP-via-env in production) but off by default — `bin/setup` enables it. No provider-specific SDK (Postmark, SendGrid, …) is bundled; any SMTP endpoint works.
 - **Feature flags.** Out of scope. The codebase is simple enough not to need them at baseline.
 - **GraphQL.** REST only. Add GraphQL if your product requires it.
 
@@ -95,7 +95,8 @@ tarik/
 ├── .env.example
 ├── .github/workflows/
 │   ├── ci.yml                  # test on PR
-│   └── deploy.yml              # deploy to Railway on merge to main
+│   ├── deploy.yml              # deploy to Railway on merge to main (opt-in via RAILWAY_TOKEN)
+│   └── template-cleanup.yml    # one-shot init/rename in repos created from the template
 ├── docker-compose.yml
 ├── Procfile.dev
 ├── bin/
@@ -118,7 +119,8 @@ tarik/
 | `locales` | Supported locales | `en`, `ja`, `en+ja` | `en+ja` |
 | `sidekiq` | Include Sidekiq? | `true`, `false` | `true` |
 | `email` | Include transactional email? | `true`, `false` | `false` |
-| `storage` | Include file storage (Active Storage + S3)? | `true`, `false` | `false` |
+| `confirmable` | Require email verification on sign-up? (asked only when `email` is `true`) | `true`, `false` | `false` |
+| `storage` | Include file storage (S3)? | `true`, `false` | `false` |
 
 ### File format
 
@@ -129,6 +131,7 @@ payment=stripe
 locales=en+ja
 sidekiq=true
 email=false
+confirmable=false
 storage=false
 ```
 
@@ -171,15 +174,16 @@ Documented in `.env.example`. Never committed.
 
 ```
 DATABASE_URL
-RAILS_MASTER_KEY
+REDIS_URL
 SECRET_KEY_BASE
 JWT_SECRET
 JWT_EXPIRY
+FRONTEND_URL
 STRIPE_SECRET_KEY
-STRIPE_PUBLISHABLE_KEY
 STRIPE_WEBHOOK_SECRET
 NEXT_PUBLIC_API_URL
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+RAILS_MASTER_KEY   # optional — only if you adopt encrypted credentials
 ```
 
 In production, `API_URL` (server-side) can point to an internal Railway hostname while `NEXT_PUBLIC_API_URL` points to the public URL.
@@ -347,7 +351,7 @@ Each phase is self-contained and leaves the codebase in a working state. Phases 
 **PAY.JP guide covers:**
 - API differences (token param, pagination model, subscription model)
 - Frontend JS swap (`stripe.js` → `pay.js`)
-- Webhook verification (PAY.JP uses IP whitelist, not HMAC signature)
+- Webhook verification (PAY.JP uses a static `X-Payjp-Webhook-Token` header, not an HMAC signature)
 - Currency limitation (JPY only)
 - Estimated migration effort with clean service object separation: 2–3 days
 
@@ -399,4 +403,4 @@ Railway:
 └── Redis         (managed add-on)
 ```
 
-PRs get Railway preview environments automatically. Environment differences are handled entirely via environment variables — no hardcoded platform-specific config.
+Deploys are opt-in: the workflow no-ops until the `RAILWAY_TOKEN` secret is set (walkthrough in [docs/deployment.md](docs/deployment.md)). PR preview environments are available as a Railway project setting. Environment differences are handled entirely via environment variables — no hardcoded platform-specific config.
