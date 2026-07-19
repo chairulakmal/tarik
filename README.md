@@ -1,282 +1,92 @@
 # tarik
 
-**Production-ready Rails 8 + Next.js 16 SaaS boilerplate**
+[![CI](https://github.com/chairulakmal/tarik/actions/workflows/ci.yml/badge.svg)](https://github.com/chairulakmal/tarik/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Auth, payments, EN/JA i18n, Docker, CI/CD, and Railway deployment — wired together and ready to extend.
-
-[![CI](https://github.com/chairulakmal/tarik/actions/workflows/ci.yml/badge.svg)](https://github.com/chairulakmal/tarik/actions/workflows/ci.yml)
-[![Rails](https://img.shields.io/badge/Rails-8-CC0000?logo=rubyonrails&logoColor=white)](https://rubyonrails.org/)
-[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-
----
+An open-source Rails 8 + Next.js 16 SaaS boilerplate (auth, Stripe payments, EN/JA i18n, Docker, CI, Railway deployment), shipped as a GitHub Template whose distinctive trick is that it configures itself: an interactive [bin/setup](bin/setup) records your choices in a `.tarik` file and edits the codebase to match, and a one-shot workflow renames every `tarik` identifier to your repository's name and then deletes itself. Below: the pitch and the name, the highlights, the stack, how to run it locally (including a demo mode that needs no Stripe keys), and how it is tested; [ARCHITECTURE.md](ARCHITECTURE.md) walks the design decisions.
 
 ## What is tarik?
 
-**tarik** (طارق) is an open-source, opinionated SaaS boilerplate for developers 
-who want to skip the setup and start building — Rails 8 API, Next.js 16, auth, 
-payments, and EN/JA i18n, wired together and ready to clone.
+tarik is for developers who want to skip the setup and start building. Every Rails SaaS project begins by wiring the same things: Devise, JWTs, Stripe service objects, locale routing, Docker, CI, deployment config. That is days of work that produces no product value, or, with an AI agent, a budget spent re-deriving decisions that have been made a thousand times before. tarik front-loads all of it: the architecture is decided, the conventions are indexed in [AGENTS.md](AGENTS.md) for any coding agent, and the code is already wired, so you and your agent start at product, not scaffolding.
 
-The name carries two meanings across two traditions.
+The name carries two meanings across two traditions. In Arabic, *At-Tariq* (الطارق) is the piercing star: the night star that strikes through darkness to guide travellers who have lost their way, which is what an opinionated boilerplate does for architectural decisions. In Malay, *tarik* means "to pull", a gravitational draw toward something. tarik is both: a guiding star, and a stack that pulls you in.
 
-In Arabic, *At-Tariq* (الطارق) is the piercing star — the night 
-star that strikes through darkness to guide travellers who have lost their way. 
-An opinionated boilerplate does the same: it cuts through the paralysis of 
-architectural decisions and points you toward a clear path.
+The Japanese support is deliberate, not decorative. Ruby remains a popular backend language in Japan's tech industry, and PAY.JP is a fixture of its Ruby community, so tarik ships EN/JA i18n from the first line of code plus a [step-by-step migration guide](docs/payjp-migration.md) from Stripe to PAY.JP.
 
-In Malay, *tarik* means "to pull" — a gravitational draw toward 
-something. The best tools don't just sit there waiting; they pull you in.
+## Highlights
 
-tarik is both: a guiding star, and a stack that pulls you in.
+- [bin/setup](bin/setup) is one idempotent command from cold clone to running app. It preflights the machine (Docker daemon, Ruby, Node, foreman), prompts once for your choices (payment processor, locales, Sidekiq, email, S3 storage) and saves them to `.tarik`, generates `.env` with real secrets, starts Postgres and Redis, installs both dependency trees, and migrates and seeds the database. Choices are applied by editing the tree: opting down to one locale deletes the unused catalogs and rewrites [frontend/i18n/routing.ts](frontend/i18n/routing.ts), and opting out of Sidekiq strips the worker from [Procfile.dev](Procfile.dev) and flips jobs to in-process `:async`.
+- [template-cleanup.yml](.github/workflows/template-cleanup.yml) runs exactly once in a repository created from the template: it promotes [AGENTS.template.md](AGENTS.template.md) to `AGENTS.md`, renames database names, Railway service names, and the visible app title from `tarik` to the new repository's name, commits, and deletes itself. An `is_template` guard keeps it inert in tarik itself.
+- The Rails API authenticates every client the same way: a JWT in the `Authorization: Bearer` header, no cookies, no server session, revocation via a denylist table. [frontend/proxy.ts](frontend/proxy.ts) does locale routing only and route guarding is client-side, because the API returning `401` is the real security boundary. The rationale, the NIST-based 15-character password policy, the full account lifecycle (password reset, email change, account deletion, optional email verification), and the path to cookie-based SSR if you need it are all in [docs/auth.md](docs/auth.md).
+- All Stripe logic lives in service objects behind the [`PaymentService`](api/app/services/payment_service.rb) facade, nothing in controllers or models, and a replayed webhook delivery is a no-op because [`ProcessedStripeEvent`](api/app/models/processed_stripe_event.rb) records each event id under a unique index. Using the `stripe` gem directly (no `pay` abstraction) is what keeps the [PAY.JP migration](docs/payjp-migration.md) a service-layer swap with no controller or model changes.
+- Demo mode walks sign-up to active subscription with no Stripe keys: [`SubscriptionService`](api/app/services/payments/subscription_service.rb) simulates checkout, the [seeds](api/db/seeds.rb) provide a subscribed account and an empty-state account, and a fail-fast [initializer](api/config/initializers/demo_mode.rb) raises at boot if `DEMO_MODE` reaches any environment other than development or test.
+- EN and JA are wired before any feature: `[locale]` routing via next-intl on the frontend, an [`AcceptLanguage` middleware](api/app/middleware/accept_language.rb) that parses q-values on the API, and a per-user `locale` column that wins once signed in. No component hardcodes a string; everything goes through `t()`.
+- Auth endpoints are throttled by [rack-attack](api/config/initializers/rack_attack.rb) with Redis-backed counters that hold across replicas: sign-in is limited per IP and per email address (which catches attacks that rotate IPs against one account), sign-up and password reset per IP, and the `429` uses the API's own JSON error envelope.
+- Deploys are opt-in: [deploy.yml](.github/workflows/deploy.yml) ships wired for Railway but no-ops successfully until a `RAILWAY_TOKEN` secret exists, so a fresh template repo never starts with a red check. [docs/deployment.md](docs/deployment.md) is the cold-start walkthrough from empty Railway account to running app.
 
-## Why tarik?
+## Stack
 
-Most Rails boilerplates either bundle a full monolith (views, assets, session cookies) or leave you to wire everything yourself. tarik is neither.
-
-The backend is a pure Rails API. The included Next.js frontend is the reference consumer — but the API is designed from the start to serve whatever comes next: a React Native app, a third-party integration, a CLI tool. Authorization via `Bearer` token (not cookies) means any HTTP client can authenticate without special configuration. Every decision at the API boundary was made with multiple consumers in mind.
-
-The other thing tarik solves is the repetition. Every Rails SaaS project starts by wiring the same things: Devise, JWTs, Stripe service objects, i18n locale routing, Docker, CI, deployment config. That's usually two or three days of setup that produces no product value — or, if you're using an AI agent, a lot of expensive tokens spent on decisions that have already been made a thousand times before.
-
-Agents can move fast. But without a clean starting point, they spend your budget re-deriving whether to use Devise or Rodauth, how to structure service objects, where business logic belongs. Every token spent on boilerplate is a token not spent on your product. tarik front-loads all of that: the architecture is decided, the conventions are documented in `AGENTS.md`, and the code is already wired. Your agent — and you — start at product, not at scaffolding.
-
-The JA (Japanese) support is deliberate, not decorative. Ruby remains a popular backend language in Japan's tech industry, and PAY.JP is widely used in Japan's Ruby community — it's a common fixture in bootcamps and entry-level projects. A boilerplate aimed at that ecosystem should document it. tarik ships both, including a migration guide for moving from Stripe to PAY.JP.
-
----
-
-## What's included
-
-| Layer | Technology |
+| Layer | What the code pins |
 |---|---|
-| Backend | Rails 8 (API mode) |
-| Frontend | Next.js 16 (App Router) |
-| Database | PostgreSQL 18 |
-| Cache / queues | Redis 8 |
-| Auth | Devise + devise-jwt, Authorization header |
-| Payments | Stripe (direct `stripe` gem) |
-| i18n | next-intl + rails-i18n, EN + JA |
-| Background jobs | Sidekiq (pre-wired, optional) |
-| Containerisation | Docker + docker-compose |
-| CI | GitHub Actions |
-| Deployment | Railway |
+| API | Rails 8.1.3 (API-only), Ruby 3.4.9, Devise 5.0 + devise-jwt 0.13, stripe 13.5 |
+| Frontend | Next.js 16.2, React 19.2, TypeScript 5.9, next-intl 4.13, Tailwind CSS 4 |
+| Data | PostgreSQL 18 and Redis 8, Docker locally, same versions as CI's service containers |
+| Jobs | Sidekiq 8.1, optional: one env var (`ACTIVE_JOB_QUEUE_ADAPTER`) moves jobs in-process |
+| Tests | RSpec (rspec-rails 8.0) request and service specs, Vitest 4 + React Testing Library |
 
----
+## Running locally
 
-## Prerequisites
-
-| Tool | Version | Notes |
-|---|---|---|
-| Ruby | 3.4.9 | manage with [rbenv](https://github.com/rbenv/rbenv) or [mise](https://mise.jdx.dev) |
-| Node.js | 24 | manage with [nvm](https://github.com/nvm-sh/nvm) or [mise](https://mise.jdx.dev) |
-| Docker | any recent | Postgres and Redis run in Docker |
-| Bundler | latest | `gem install bundler` |
-| foreman | latest | `gem install foreman` — required by `bin/dev` |
-
----
-
-## Quick start
-
-tarik is a [GitHub Template](https://github.com/chairulakmal/tarik). Click **Use this template** on the [tarik repository](https://github.com/chairulakmal/tarik) to create your own repository, then:
+Prerequisites: Docker, Ruby 3.4.9, Node 24, foreman (`gem install foreman`); [.tool-versions](.tool-versions) pins the runtimes for mise/asdf users.
 
 ```bash
-git clone https://github.com/your-username/tarik   # GitHub fills this in for you
-cd tarik
+# 1. Create your repo on GitHub with "Use this template", then clone it
+git clone https://github.com/your-username/your-repo
+cd your-repo
+
+# 2. Everything: preflight, prompts (first run only), .env with generated
+#    secrets, Docker Postgres + Redis, gems, node modules, db create/migrate/seed
 bin/setup
-```
 
-`bin/setup` handles everything: Ruby and JS dependencies, `.env` creation with generated secrets, Docker services, database setup. On first run it prompts for your choices — payment processor, locales, Sidekiq, email, and file storage — writes them to `.tarik`, and applies them (removes unused locale files, drops the Sidekiq worker, enables SMTP/S3 config). Subsequent runs skip the prompts. It is idempotent and safe to run more than once.
-
-Then start all processes:
-
-```bash
+# 3. API on :3001, frontend on :3000, Sidekiq worker, all via foreman
 bin/dev
 ```
 
-| Service | URL |
-|---|---|
-| Frontend | http://localhost:3000 |
-| API | http://localhost:3001 |
+Auth works immediately, because `bin/setup` generates `SECRET_KEY_BASE` and `JWT_SECRET`. For payments, either add your Stripe test keys to `.env`, or skip Stripe entirely: set `DEMO_MODE=true` and `NEXT_PUBLIC_DEMO_MODE=true` in `.env`, restart `bin/dev`, and sign in as `demo@tarik.dev` / `tarik_demo_password` to explore an active subscription, or `demo-new@tarik.dev` (same password) to walk the empty-state subscribe flow. [.env.example](.env.example) is the canonical reference for every variable; never commit `.env`.
 
-`bin/setup` generates `SECRET_KEY_BASE` and `JWT_SECRET` for you, so auth works immediately. Add your Stripe keys to `.env` when you want real payments — or use demo mode below.
-
-### Try it without API keys (demo mode)
-
-1. Run `bin/setup` — this creates `.env` from `.env.example`.
-2. Edit the generated `.env`: set `DEMO_MODE=true` and `NEXT_PUBLIC_DEMO_MODE=true`.
-3. Seed the demo account: `cd api && bin/rails db:seed`
-4. Start: `bin/dev`
-
-Sign in with **demo@tarik.dev / tarik_demo_password** to explore an active subscription, or **demo-new@tarik.dev** (same password) to walk the empty-state → subscribe flow — all without touching Stripe.
-
----
-
-## Project structure
-
-```
-tarik/
-├── api/                        # Rails 8 API
-│   ├── app/
-│   │   ├── controllers/api/v1/
-│   │   ├── models/
-│   │   ├── services/
-│   │   │   ├── payment_service.rb
-│   │   │   └── payments/
-│   │   │       ├── charge_service.rb
-│   │   │       ├── subscription_service.rb
-│   │   │       └── webhook_service.rb
-│   │   └── serializers/
-│   ├── config/locales/         # en.yml, ja.yml
-│   ├── db/
-│   ├── spec/
-│   └── Gemfile
-├── frontend/                   # Next.js 16
-│   ├── app/[locale]/           # /en/..., /ja/...
-│   ├── components/
-│   ├── i18n/                   # en.json, ja.json
-│   └── package.json
-├── .env.example
-├── .github/workflows/
-│   ├── ci.yml
-│   ├── deploy.yml
-│   └── template-cleanup.yml
-├── docker-compose.yml
-├── Procfile.dev
-└── bin/
-    ├── setup
-    └── dev
-```
-
----
-
-## Auth
-
-Sign-up and sign-in hit the Rails API, which issues a JWT via Devise. The token is returned in the `Authorization: Bearer <token>` response header and stored by the client. Every subsequent request attaches it as `Authorization: Bearer <token>`; the Rails JWT strategy validates it.
-
-Beyond sign-in, the full account lifecycle is wired: **password reset** (email link → frontend reset page), a **settings page** (change email, change password, delete account — each gated on the current password server-side), and optional **email verification** on sign-up (a `bin/setup` toggle, off by default). Reset and verification emails link to the frontend via `FRONTEND_URL` in the user's locale.
-
-Route protection in Next.js is client-side: protected pages are client components that check for a token on mount and redirect unauthenticated users to `/sign-in`. `proxy.ts` handles locale routing only. The real security boundary is the API returning `401` — a client guard is just UX. See [`docs/auth.md`](docs/auth.md) for the full rationale (and how to switch to cookie-based SSR if you need it).
-
-Passwords must be **15 characters minimum** with no complexity rules — per [NIST SP800-63B](https://pages.nist.gov/800-63-4/sp800-63b.html#passwordver). See [`docs/auth.md`](docs/auth.md) for the rationale behind this policy.
-
-Auth endpoints are rate-limited: 5 sign-in attempts per 20 seconds per IP (and per email address), 10 sign-ups per hour per IP. Limits are enforced by `rack-attack` backed by the shared Redis instance.
-
----
-
-## Why Next.js?
-
-A fair question given the auth model above: if authenticated pages are client-rendered, why not a plain React SPA?
-
-Because tarik server-renders the part that actually benefits — the **public surface** (landing, pricing, docs). Those are Server Components today, where SEO and fast first paint matter, and that's the half of a SaaS that faces search engines. The app behind the login wall never needed SSR, so rendering it on the client costs nothing real.
-
-Next.js also carries the pieces you'd otherwise assemble by hand: file-based routing and layouts, `next/image` and `next/font`, automatic code-splitting, and the `next-intl` locale routing that powers `/en` and `/ja`.
-
-**What tarik does *not* use Next.js for:** Server Components for authenticated data, Server Actions, or server-side session auth. That's a deliberate trade for a frontend-agnostic API (see [Auth](#auth)). If you later need server-rendered authenticated pages, [`docs/auth.md`](docs/auth.md) documents the switch to `HttpOnly`-cookie auth — a frontend-only change; the Rails API stays the same.
-
----
-
-## Payments
-
-tarik uses the `stripe` gem directly, not the `pay` abstraction. All Stripe logic lives in service objects under `api/app/services/payments/` — nothing in controllers or models.
-
-This structure also makes switching payment processors tractable. See [`docs/payjp-migration.md`](docs/payjp-migration.md) for a step-by-step guide to migrating from Stripe to PAY.JP (v1), which is widely used in Japan's Ruby bootcamp and startup ecosystem. A PAY.JP v2 Ruby gem ([payjpv2-ruby](https://github.com/payjp/payjpv2-ruby)) exists but does not yet support recurring billing. The key differences are documented there: token parameter names (`card:` vs `source:`), offset pagination, subscription objects (`Plan` vs `Price`), frontend JS (PAY.JS vs Stripe.js), and webhook verification (static `X-Payjp-Webhook-Token` header vs Stripe's HMAC signature).
-
----
-
-## i18n
-
-Both the API and frontend support English and Japanese from the first line of code. URL structure is `/en/...` and `/ja/...`. String keys live in `frontend/i18n/en.json` + `ja.json` and `api/config/locales/en.yml` + `ja.yml`.
-
-The `Accept-Language` header sets the API locale per request. The browser locale sets the frontend locale on first visit, with user preference persisted after sign-in.
-
-English strings are not hardcoded in components — always use `t()`.
-
----
-
-## API conventions
-
-- All endpoints: `/api/v1/`
-- JSON only
-- Field naming: snake_case in Ruby, camelCase on the wire
-- Success: `{ "data": { ... } }` or `{ "data": [ ... ] }`
-- Error: `{ "error": { "message": "...", "code": "..." } }`
-
----
-
-## Running tests
+Run the test suites:
 
 ```bash
-# Rails
-cd api && bundle exec rspec
+# API, from api/ (needs the Docker Postgres up)
+bundle exec rspec
+bundle exec rubocop
 
-# Next.js
-cd frontend && npm test
+# Frontend, from frontend/
+npm test               # Vitest + React Testing Library
+npm run type-check
+npm run lint
 ```
 
-GitHub Actions runs both suites on every pull request.
+## Testing and CI
 
----
+The API suite is request specs against a real PostgreSQL covering every `/api/v1` surface: auth (sign-up, sign-in, password reset), user settings, subscriptions, Stripe webhooks, and locale middleware behaviour ([api/spec/requests](api/spec/requests)), plus service specs that stub the Stripe API ([api/spec/services/payments](api/spec/services/payments)). The frontend ships exemplar Vitest tests for the API client ([frontend/lib/api.test.ts](frontend/lib/api.test.ts)), locale routing ([frontend/i18n/routing.test.ts](frontend/i18n/routing.test.ts)), and components ([frontend/components/DemoBanner.test.tsx](frontend/components/DemoBanner.test.tsx)). Browser automation is deliberately not bundled; [docs/playwright.md](docs/playwright.md) explains why and how to add Playwright when you have real flows worth automating.
 
-## Deployment
-
-tarik deployment defaults to [Railway](https://railway.app). Two services, one project:
-
-- `tarik-api` — Rails, built from `api/Dockerfile`
-- `tarik-web` — Next.js, built from `frontend/Dockerfile`
-
-Railway provides managed PostgreSQL and Redis. Deploys are **opt-in**: the GitHub Actions Deploy workflow skips itself (successfully) until you add a `RAILWAY_TOKEN` secret, then deploys both services on every merge to `main`. Migrations run automatically on boot (`db:prepare`).
-
-Step-by-step walkthrough — project creation, service naming, variables, Stripe webhook, PR previews: [`docs/deployment.md`](docs/deployment.md).
-
-All environment differences are handled via environment variables.
-
-> The app is not coupled to Railway and can run on any platform — the Dockerfiles work anywhere containers do.
-
----
-
-## Environment variables
-
-[`.env.example`](.env.example) is the canonical reference — every variable is listed there with a comment. `bin/setup` copies it to `.env` on first run.
-
-**Required to boot** (all filled in by `bin/setup` — secrets are generated for you):
-```bash
-DATABASE_URL
-REDIS_URL
-SECRET_KEY_BASE
-JWT_SECRET
-```
-
-**Required for payments (Stripe):**
-```bash
-STRIPE_SECRET_KEY
-STRIPE_WEBHOOK_SECRET
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-NEXT_PUBLIC_STRIPE_PRICE_ID        # Price ID of the plan shown on the subscribe page
-```
-
-**Required for the frontend:**
-```bash
-NEXT_PUBLIC_API_URL
-```
-
-**Optional blocks** (email/SMTP, S3 storage) are documented inline in `.env.example`; `bin/setup` uncomments the ones you enable. `FRONTEND_URL` (used in password-reset email links) and `ACTIVE_JOB_QUEUE_ADAPTER` ship active with local defaults.
-
-Never commit `.env`.
-
----
+[ci.yml](.github/workflows/ci.yml) runs on every push and pull request to `main`: a Rails job with Postgres 18 and Redis 8 service containers that runs RuboCop and RSpec, and a Next.js job that runs the type check and Vitest.
 
 ## Guides
 
-- [`docs/auth.md`](docs/auth.md) — JWT auth rationale, client-side route guard, password reset and account management, and how to switch to `HttpOnly`-cookie auth if you need SSR-protected pages.
-- [`docs/deployment.md`](docs/deployment.md) — Cold-start Railway walkthrough: services, variables, Stripe webhook, and the opt-in deploy workflow.
-- [`docs/payjp-migration.md`](docs/payjp-migration.md) — Step-by-step migration from Stripe to PAY.JP: service objects, frontend JS, webhook verification, and environment variables.
-- [`docs/playwright.md`](docs/playwright.md) — End-to-end testing setup with Playwright.
+- [docs/auth.md](docs/auth.md): JWT-over-header rationale, client-side route guard, password policy, account lifecycle, and the switch to cookie-based SSR if you need it.
+- [docs/deployment.md](docs/deployment.md): cold-start Railway walkthrough, services, variables, Stripe webhook, and the opt-in deploy workflow.
+- [docs/payjp-migration.md](docs/payjp-migration.md): step-by-step Stripe to PAY.JP migration through the service layer.
+- [docs/playwright.md](docs/playwright.md): adding end-to-end browser tests when your project needs them.
+- [SPEC.md](SPEC.md): the technical specification, including repo layout, API conventions, environment variables, and the build phases. [AGENTS.md](AGENTS.md) indexes the hard rules for coding agents.
 
----
+## Architecture
+
+[ARCHITECTURE.md](ARCHITECTURE.md) walks through the decisions with file paths: the self-configuring template and its self-deleting init workflow, header-only auth with client-side guards, payments as service objects with idempotent webhooks, production-fenced demo mode, i18n wired before the first feature, and Docker scoped to the data layer with Sidekiq as an option. Each section states the choice, the reasoning, and the trade-off accepted.
 
 ## Contributing
 
-Issues and pull requests are welcome. Please open an issue before starting large changes so we can discuss the approach.
-
----
+Issues and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md) and please open an issue before starting large changes.
 
 ## License
 
-MIT
+[MIT](LICENSE)
